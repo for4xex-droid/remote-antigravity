@@ -14,6 +14,7 @@ interface UseAgentSocketReturn {
     isConnected: boolean;
     sendMessage: (content: string) => void;
     uploadImage: (file: File) => Promise<void>;
+    sendAudio: (blob: Blob, mimeType: string) => void;
     stopAgent: () => void;
 }
 
@@ -137,12 +138,31 @@ export function useAgentSocket(): UseAgentSocketReturn {
         }
     }, []);
 
+    const sendAudio = useCallback((audioBlob: Blob, mimeType: string) => {
+        socketRef.current?.emit('voice-audio', {
+            audio: audioBlob,
+            mimeType: mimeType,
+            timestamp: Date.now()
+        });
+
+        // Optimistic UI update
+        const newMessage: Message = {
+            id: Date.now().toString(),
+            role: 'user',
+            content: '🎤 音声を送信しました...',
+            timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, newMessage]);
+        setStatus('thinking');
+    }, []);
+
     return {
         messages,
         status,
         isConnected,
         sendMessage,
         uploadImage,
+        sendAudio,
         stopAgent,
     };
 }

@@ -1,6 +1,8 @@
+import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
-import path from 'path';
 import { FileBridge } from './services/FileBridge';
+import path from 'path';
+import fs from 'fs';
 
 // Default chat file path (can be overridden via environment variable)
 const CHAT_FILE_PATH = process.env.CHAT_FILE_PATH ||
@@ -104,7 +106,7 @@ export function setupSocket(io: Server): void {
 
         // Handle chat messages from client
         socket.on('chat:send', async (data: { content: string }) => {
-            console.log(`📱 Received from mobile: ${data.content}`);
+            console.log(`📨 Received from client: ${data.content.substring(0, 50)}...`);
 
             // Write to file for Antigravity to read
             if (fileBridge) {
@@ -117,6 +119,46 @@ export function setupSocket(io: Server): void {
 
             // Note: The actual response will come when the file changes
             // (when Antigravity writes back to the file)
+        });
+
+        // Handle voice audio
+        socket.on('voice-audio', async (data: { audio: Buffer; mimeType: string; timestamp: number }) => {
+            console.log(`🎤 Received voice audio: ${data.mimeType}, ${data.audio ? data.audio.byteLength : 0} bytes`);
+
+            if (!fileBridge) return;
+
+            try {
+                // Determine extension
+                let ext = 'webm';
+                if (data.mimeType && data.mimeType.includes('mp4')) ext = 'mp4';
+                else if (data.mimeType && data.mimeType.includes('aac')) ext = 'aac';
+                else if (data.mimeType && data.mimeType.includes('wav')) ext = 'wav';
+
+                const filename = `voice_${data.timestamp || Date.now()}.${ext}`;
+                const filepath = path.join(__dirname, '../uploads', filename);
+
+                // Ensure uploads directory exists
+                if (!fs.existsSync(path.join(__dirname, '../uploads'))) {
+                    fs.mkdirSync(path.join(__dirname, '../uploads'));
+                }
+
+                fs.writeFileSync(filepath, data.audio);
+                console.log(`💾 Saved voice file to: ${filepath}`);
+
+                // Write special tag to chat file for runner.ts to pick up
+                // Using a relative path for cleaner logs/markdown
+                const relativePath = `uploads/${filename}`;
+
+                // Just write the path tag, runner will pick it up
+                await fileBridge.writeMessage(`<Voice-Data:${relativePath}>`, 'user');
+                console.log('📝 Written voice tag to file');
+
+                socket.emit('agent:status', { status: 'thinking' });
+
+            } catch (err) {
+                console.error('❌ Error handling voice data:', err);
+                socket.emit('error', { message: 'Failed to process voice data' });
+            }
         });
 
         // Handle stop request

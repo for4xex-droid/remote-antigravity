@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useRef, useState, KeyboardEvent } from 'react';
-import { Send, Square, Paperclip } from 'lucide-react';
+import React, { useRef, useState, KeyboardEvent, useEffect } from 'react';
+import { Send, Square, Paperclip, Mic } from 'lucide-react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -9,6 +9,7 @@ import { twMerge } from 'tailwind-merge';
 interface ChatInputProps {
     onSend: (message: string) => void;
     onUploadImage?: (file: File) => Promise<void>;
+    onSendAudio?: (blob: Blob, mimeType: string) => void;
     isLoading: boolean;
     onStop?: () => void;
     placeholder?: string;
@@ -17,13 +18,17 @@ interface ChatInputProps {
 export default function ChatInput({
     onSend,
     onUploadImage,
+    onSendAudio,
     isLoading,
     onStop,
     placeholder = 'Type a message...',
 }: ChatInputProps) {
     const [input, setInput] = useState('');
+    const [isRecording, setIsRecording] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
 
     const handleSubmit = async () => {
         if (!input.trim()) return;
@@ -54,6 +59,80 @@ export default function ChatInput({
         }
     };
 
+    // Voice Recording Logic
+    const startRecording = async (e: React.MouseEvent | React.TouchEvent) => {
+        // e.preventDefault(); // Prevent text selection etc - but might block click on mobile?
+        // Let's rely on event types.
+
+        if (isRecording) return; // Already recording
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+            // Auto-detect supported MIME type (for iOS compatibility)
+            // Safari prefers audio/mp4 or audio/aac, Chrome prefers audio/webm
+            let mimeType = 'audio/webm';
+            if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/aac')) {
+                    mimeType = 'audio/aac';
+                } else {
+                    console.warn('No standard audio MIME type supported, trying default');
+                    mimeType = ''; // Let browser choose default
+                }
+            }
+
+            const options = mimeType ? { mimeType } : undefined;
+            const mediaRecorder = new MediaRecorder(stream, options);
+
+            mediaRecorderRef.current = mediaRecorder;
+            audioChunksRef.current = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.start();
+            setIsRecording(true);
+            console.log(`Recording started (${mediaRecorder.mimeType})...`);
+
+            if (navigator.vibrate) navigator.vibrate(50); // Feedback
+
+        } catch (err) {
+            console.error("Mic Error:", err);
+            alert("マイクの使用を許可してください（iOSの場合はSafariの設定を確認）");
+        }
+    };
+
+    const stopRecording = (e: React.MouseEvent | React.TouchEvent) => {
+        // e.preventDefault();
+
+        if (!isRecording || !mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+
+        const mediaRecorder = mediaRecorderRef.current;
+        mediaRecorder.stop();
+        setIsRecording(false);
+
+        mediaRecorder.onstop = () => {
+            const mimeType = mediaRecorder.mimeType || 'audio/webm';
+            const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
+
+            console.log(`Sending audio: ${audioBlob.size} bytes, Type: ${mimeType}`);
+
+            if (onSendAudio) {
+                onSendAudio(audioBlob, mimeType);
+            }
+
+            // Stop all tracks
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+            if (navigator.vibrate) navigator.vibrate([50, 50]); // Success feedback
+        };
+    };
+
     return (
         <div className="w-full bg-white/10 backdrop-blur-md border-t border-white/10 p-4 pb-safe-area-bottom">
             <div className="relative flex items-end gap-2 max-w-4xl mx-auto">
@@ -78,13 +157,35 @@ export default function ChatInput({
                         ref={textareaRef}
                         minRows={1}
                         maxRows={5}
-                        placeholder={placeholder}
+                        placeholder={isRecording ? "Recording..." : placeholder}
                         className="w-full bg-transparent text-white px-4 py-3 outline-none resize-none text-[16px] leading-6 placeholder:text-white/30"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
+                        disabled={isRecording}
                     />
                 </div>
+
+                {/* Mic Button - Visible when input is empty */}
+                {!input.trim() && !isLoading && (
+                    <button
+                        onMouseDown={startRecording}
+                        onTouchStart={startRecording}
+                        onMouseUp={stopRecording}
+                        onTouchEnd={stopRecording}
+                        onMouseLeave={stopRecording} // If mouse drags out
+                        className={clsx(
+                            "p-3 rounded-full transition-all duration-200 transform shadow-lg active:scale-95 select-none",
+                            isRecording
+                                ? "bg-red-500 text-white animate-pulse shadow-red-500/30 scale-110"
+                                : "bg-white/5 text-white/50 hover:bg-white/10 hover:text-white"
+                        )}
+                        aria-label="Voice input"
+                        title="Hold to speak"
+                    >
+                        <Mic size={20} className={isRecording ? "animate-bounce" : ""} />
+                    </button>
+                )}
 
                 {input.trim() ? (
                     <button
@@ -94,7 +195,7 @@ export default function ChatInput({
                     >
                         <Send size={20} />
                     </button>
-                ) : isLoading ? (
+                ) : isLoading && !isRecording ? (
                     <button
                         onClick={onStop}
                         disabled={!onStop}
@@ -103,15 +204,7 @@ export default function ChatInput({
                     >
                         <Square size={20} fill="currentColor" />
                     </button>
-                ) : (
-                    <button
-                        disabled
-                        className="p-3 rounded-full transition-all duration-200 transform bg-white/5 text-white/20 cursor-not-allowed"
-                        aria-label="Send message"
-                    >
-                        <Send size={20} />
-                    </button>
-                )}
+                ) : null}
             </div>
         </div>
     );

@@ -7,7 +7,7 @@ import AgentStatus from '@/components/AgentStatus';
 import { useAgentSocket } from '@/hooks/useAgentSocket';
 
 export default function Home() {
-  const { messages, status, isConnected, sendMessage, uploadImage, stopAgent } = useAgentSocket();
+  const { messages, status, isConnected, sendMessage, uploadImage, sendAudio, stopAgent } = useAgentSocket();
 
   return (
     <main className="flex flex-col h-[100dvh] w-full max-w-md mx-auto relative bg-black/20 shadow-2xl overflow-hidden">
@@ -46,6 +46,7 @@ export default function Home() {
         <ChatInput
           onSend={sendMessage}
           onUploadImage={uploadImage}
+          onSendAudio={sendAudio}
           isLoading={status === 'thinking' || status === 'acting'}
           onStop={stopAgent}
         />

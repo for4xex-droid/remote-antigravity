@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { FileBridge } from './services/FileBridge';
+import { exec } from 'child_process';
 const screenshot = require('screenshot-desktop');
 
 // Load environment variables from parent .env if exists
@@ -10,6 +11,9 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
 const API_KEY = process.env.GEMINI_API_KEY;
 const CHAT_FILE_PATH = path.resolve(__dirname, '../../mobile-chat.md');
+
+// Global state for command execution
+let currentDir = process.cwd();
 
 if (!API_KEY) {
     console.error('❌ Error: GEMINI_API_KEY is not set.');
@@ -176,12 +180,176 @@ async function processFileContext(content: string) {
         }
 
         if (messageText) {
-            // If it's pure text, just pass string
+            // Feature: Voice Transcription
+            const voiceMatch = messageText.match(/<Voice-Data:(.+?)>/);
+            if (voiceMatch) {
+                console.log(`🎤 Voice Input Detected: ${voiceMatch[1]}`);
+                try {
+                    const relativePath = voiceMatch[1];
+                    // Fix path resolution: runner.ts is in src/, uploads is in bridge-server/uploads
+                    // uploads/filename is passed in relativePath
+                    // So we need path.resolve(__dirname, '../', relativePath) -> bridge-server/uploads/filename
+                    // relativePath includes 'uploads/' prefix, so we need to be careful.
+
+                    // If relativePath is "uploads/foo.webm", and we are in "src",
+                    // path.resolve(__dirname, '../', relativePath) would be "bridge-server/uploads/foo.webm"
+                    // which matches where socket.ts saved it.
+
+                    // Wait, socket.ts saved to path.join(__dirname, '../uploads') -> bridge-server/uploads
+                    // And passed "uploads/filename" as relativePath.
+
+                    // If we use path.resolve(__dirname, '../../', relativePath):
+                    // src -> bridge-server -> root -> root/uploads/filename
+                    // This was wrong because uploads is inside bridge-server.
+
+                    // So we want: src -> bridge-server -> bridge-server/uploads/filename
+                    // Using '../' goes to bridge-server. Then appending "uploads/filename" works.
+                    const audioPath = path.resolve(__dirname, '../', relativePath);
+                    console.log(`📂 Resolved audio path: ${audioPath}`);
+
+                    if (fs.existsSync(audioPath)) {
+                        const audioData = fs.readFileSync(audioPath);
+                        const base64Audio = audioData.toString('base64');
+
+                        // Determine mime type from extension
+                        let mimeType = 'audio/webm'; // default
+                        if (audioPath.endsWith('.mp4')) mimeType = 'audio/mp4';
+                        if (audioPath.endsWith('.aac')) mimeType = 'audio/aac';
+                        if (audioPath.endsWith('.wav')) mimeType = 'audio/wav';
+
+                        console.log(`🔄 Transcribing audio (${mimeType})...`);
+
+                        // Transcribe using Gemini
+                        // Use a specific model instance for transcription
+                        const audioModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+
+                        const result = await audioModel.generateContent([
+                            `この音声は日本語のシステム操作コマンド、または会話です。
+                            音声をテキストに変換し、以下のルールに従って出力してください：
+
+                            1. 「ラン」や「Run」といった発話は、コマンド実行指示として解釈し、"/run " プレフィックスを付けてください。
+                            2. Windows環境で動作するコマンドに可能な限り変換してください：
+                               - 「エルエス」「リスト」 → "dir"
+                               - 「ラン エルエス」 → "/run dir"
+                            3. 出力は変換後のテキストのみ。説明や挨拶は不要です。
+                            
+                            例：
+                            音声：「ラン　エルエス」 → 出力：/run dir
+                            音声：「スクショ撮って」 → 出力：スクショ撮って`,
+                            {
+                                inlineData: {
+                                    mimeType: mimeType,
+                                    data: base64Audio
+                                }
+                            }
+                        ]);
+
+                        const transcribedText = result.response.text().trim();
+                        console.log(`📝 Transcribed: "${transcribedText}"`);
+
+                        // Notify user what was heard
+                        await fileBridge.writeMessage(`👂 Hears: "${transcribedText}"`, 'agent');
+
+                        // OVERWRITE messageText with the transcribed text!!
+                        // This effectively pipes the voice input into the rest of the logic (/run or chat)
+                        messageText = transcribedText;
+
+                    } else {
+                        console.error(`❌ Audio file not found: ${audioPath}`);
+                        await fileBridge.writeMessage(`❌ Error: Audio file missing`, 'agent');
+                        isThinking = false;
+                        return;
+                    }
+                } catch (err: any) {
+                    console.error(`❌ Transcription failed:`, err);
+                    await fileBridge.writeMessage(`⚠️ Voice Error: ${err.message}`, 'agent');
+                    isThinking = false;
+                    return;
+                }
+            }
+
+            // If it's pure text (or became text after transcription), just pass string
             if (parts.length === 0) {
                 parts.push(messageText);
             } else {
                 parts.push({ text: messageText });
             }
+        }
+
+        // Feature: Command Execution (/run)
+        if (messageText.startsWith('/run ')) {
+            const command = messageText.slice(5).trim();
+            console.log(`💻 Executing: ${command} in ${currentDir}`);
+
+            // Special handling: cd command
+            if (command.startsWith('cd ')) {
+                const targetPath = command.slice(3).trim();
+                try {
+                    const newPath = path.resolve(currentDir, targetPath);
+                    // Check if directory exists
+                    if (fs.existsSync(newPath) && fs.statSync(newPath).isDirectory()) {
+                        process.chdir(newPath); // Change process cwd as well
+                        currentDir = newPath;   // Remember it
+                        const responseMsg = `📂 Directory changed to:\n${currentDir}`;
+                        console.log(responseMsg);
+                        await fileBridge.writeMessage(responseMsg, 'agent');
+                    } else {
+                        throw new Error('Directory does not exist');
+                    }
+                } catch (err: any) {
+                    const errorMsg = `❌ cd failed: ${err.message}`;
+                    console.error(errorMsg);
+                    await fileBridge.writeMessage(errorMsg, 'agent');
+                }
+                isThinking = false;
+                return;
+            }
+
+            // Normal command execution using exec
+            // Windows encoding fix: chcp 65001
+            const fullCommand = process.platform === 'win32' ? `chcp 65001 > nul && ${command}` : command;
+
+            // Execute asynchronously but wait for callback
+            exec(fullCommand, { cwd: currentDir, encoding: 'utf-8' }, async (error: any, stdout: any, stderr: any) => {
+                let output = "";
+                if (error) {
+                    output += `💀 Error:\n${error.message}\n\n`;
+                }
+                if (stderr) {
+                    output += `⚠️ Stderr:\n${stderr}\n\n`;
+                }
+                if (stdout) {
+                    output += `✅ Stdout:\n${stdout}`;
+                }
+
+                if (!output) output = "✅ Executed (No output)";
+
+                console.log("Command Output length:", output.length);
+
+                // Truncate if too long (Discord/Markdown limits)
+                if (output.length > 4000) {
+                    output = output.substring(0, 4000) + "\n...(truncated)";
+                }
+
+                // Send back to chat
+                await fileBridge.writeMessage(output, 'agent');
+
+                // IMPORTANT: Reset thinking state here since this is async callback
+                // But wait, the main function will finish and set isThinking=false immediately?
+                // No, processFileContext is async but exec callback is separate.
+                // Actually, since we are returning from the main function, we need to handle isThinking carefully.
+                // However, the original code sets isThinking=false in finally block. 
+                // We should probably wrap this in a Promise to await it if we were strictly following async flow,
+                // but here we can just let the callback handle the write.
+                // The main function will exit, setting isThinking=false in finally block.
+                // This might cause a race condition where a new file change triggers before this writes back?
+                // No, fileBridge listens for file changes.
+                // Let's rely on the fact that fileBridge.writeMessage writes to the file, which triggers fileChanged.
+            });
+
+            // We return here so we don't call Gemini
+            isThinking = false;
+            return;
         }
 
         // Feature: Screenshot Trigger
