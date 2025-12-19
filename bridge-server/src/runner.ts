@@ -78,13 +78,35 @@ async function selectBestModel() {
     }
 }
 
+// Helper to read rules
+function getSystemContext(): string {
+    try {
+        const rulePath = path.resolve(__dirname, '../../rule.md');
+        if (fs.existsSync(rulePath)) {
+            const rules = fs.readFileSync(rulePath, 'utf-8');
+            return `
+【SYSTEM CONTEXT & RULES】
+以下の開発ガイドラインとシステム能力を厳守して回答してください。
+--------------------------------------------------
+${rules}
+--------------------------------------------------
+`;
+        }
+    } catch (e) {
+        console.error("⚠️ rule.md load failed:", e);
+    }
+    return "";
+}
+
 async function initGeminiChatSession() {
     if (!genAI || !activeModelName) {
         console.warn('⚠️ Gemini or active model not initialized, skipping chat session setup.');
         return;
     }
 
+    const systemContext = getSystemContext();
     const model = genAI.getGenerativeModel({ model: activeModelName });
+
     chatSession = model.startChat({
         history: [
             {
@@ -93,6 +115,8 @@ async function initGeminiChatSession() {
                     text: `You are the Antigravity Agent. You live in the user's computer. 
 You can see the screen when requested. 
 Be helpful and concise.
+
+${systemContext}
 
 You have access to the following capabilities:
 1. **Execute Commands**: Output lines starting with "/run " to execute commands.
@@ -111,7 +135,7 @@ You have access to the following capabilities:
             },
             {
                 role: "model",
-                parts: [{ text: "Understood. I am ready to act as your autonomous engineer. I can run commands and write files directly to your system." }],
+                parts: [{ text: "Understood. I am ready to act as your autonomous engineer. I have read the rules and I can run commands and write files directly to your system." }],
             },
         ],
     });
@@ -476,10 +500,24 @@ async function processFileContext(content: string) {
             const fileRegex = /<write\s+file="([^"]+)">([\s\S]*?)<\/write>/g;
             let match;
             let filesWritten = [];
+            let performedBackup = false;
 
             while ((match = fileRegex.exec(response)) !== null) {
                 const relativePath = match[1];
                 const fileContent = match[2].trim();
+
+                // Safety: Backup before writing
+                // Note: performedBackup variable needs to be defined outside loop
+                if (typeof performedBackup !== 'undefined' && !performedBackup) {
+                    try {
+                        console.log('🛡️ Creating backup commit...');
+                        require('child_process').execSync('git add . && git commit -m "Auto-save: Before AI Edit"', { cwd: currentDir, stdio: 'ignore' });
+                        console.log('✅ Backup created.');
+                    } catch (bkErr) {
+                        // Ignore
+                    }
+                    performedBackup = true;
+                }
 
                 try {
                     const fullPath = path.resolve(currentDir, relativePath);

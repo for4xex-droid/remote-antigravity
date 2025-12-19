@@ -1,22 +1,18 @@
-2025-12-19T13:59:29Z INF Starting tunnel tunnelID=1298db94-d3f4-4286-83a7-d6238ab63676
-2025-12-19T13:59:29Z INF Version 2025.8.1 (Checksum b5d598b00cc3a28cabc5812d9f762819334614bae452db4e7f23eefe7b081556)
-2025-12-19T13:59:29Z INF GOOS: windows, GOVersion: go1.24.2, GoArch: amd64
-2025-12-19T13:59:29Z INF Settings: map[config:C:\Users\user\.gemini\remote-antigravity\scripts\..\config.yml cred-file:C:\Users\user\.cloudflared\1298db94-d3f4-4286-83a7-d6238ab63676.json credentials-file:C:\Users\user\.cloudflared\1298db94-d3f4-4286-83a7-d6238ab63676.json]
-2025-12-19T13:59:29Z INF cloudflared will not automatically update on Windows systems.
-2025-12-19T13:59:29Z INF Generated Connector ID: e6fe3b48-2fce-4f06-8907-25e6a7f3bc28
-2025-12-19T13:59:29Z INF Initial protocol quic
-2025-12-19T13:59:29Z INF ICMP proxy will use 192.168.0.7 as source for IPv4
-2025-12-19T13:59:29Z INF ICMP proxy will use 240f:9a:4bd5:1:d9c3:fb72:c2f9:61d9 in zone Wi-Fi as source for IPv6
-2025-12-19T13:59:29Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
-2025-12-19T13:59:29Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
-2025-12-19T13:59:29Z INF ICMP proxy will use 192.168.0.7 as source for IPv4
-2025-12-19T13:59:29Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.192.47
-2025-12-19T13:59:29Z INF ICMP proxy will use 240f:9a:4bd5:1:d9c3:fb72:c2f9:61d9 in zone Wi-Fi as source for IPv6
-2025-12-19T13:59:29Z INF Starting metrics server on 127.0.0.1:20241/metrics
-2025-12-19T13:59:30Z INF Registered tunnel connection connIndex=0 connection=a7820a98-5fee-47d2-b2fd-4df9ced172a1 event=0 ip=198.41.192.47 location=kix04 protocol=quic
-2025-12-19T13:59:30Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.200.193
-2025-12-19T13:59:31Z INF Registered tunnel connection connIndex=1 connection=059e499e-6256-4552-b064-79ce18854938 event=0 ip=198.41.200.193 location=kix05 protocol=quic
-2025-12-19T13:59:31Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.67
-2025-12-19T13:59:31Z INF Registered tunnel connection connIndex=2 connection=5c3f8a6a-cf04-4a54-8e1c-c24189e25caf event=0 ip=198.41.192.67 location=kix04 protocol=quic
-2025-12-19T13:59:32Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.63
-2025-12-19T13:59:32Z INF Registered tunnel connection connIndex=3 connection=3ee8a71c-5662-4098-8a58-3409e6b31e03 event=0 ip=198.41.200.63 location=kix06 protocol=quic
+2025-12-19T14:19:50Z INF Starting tunnel tunnelID=1298db94-d3f4-4286-83a7-d6238ab63676
+2025-12-19T14:19:50Z INF Version 2025.8.1 (Checksum b5d598b00cc3a28cabc5812d9f762819334614bae452db4e7f23eefe7b081556)
+2025-12-19T14:19:50Z INF GOOS: windows, GOVersion: go1.24.2, GoArch: amd64
+2025-12-19T14:19:50Z INF Settings: map[config:C:\Users\user\.gemini\remote-antigravity\scripts\..\config.yml cred-file:C:\Users\user\.cloudflared\1298db94-d3f4-4286-83a7-d6238ab63676.json credentials-file:C:\Users\user\.cloudflared\1298db94-d3f4-4286-83a7-d6238ab63676.json]
+2025-12-19T14:19:50Z INF cloudflared will not automatically update on Windows systems.
+2025-12-19T14:19:50Z INF Generated Connector ID: 40bb4423-5372-45a0-bc2a-522e8bf0a181
+2025-12-19T14:19:50Z INF Initial protocol quic
+2025-12-19T14:19:50Z INF ICMP proxy will use 192.168.0.7 as source for IPv4
+2025-12-19T14:19:50Z INF ICMP proxy will use 240f:9a:4bd5:1:d9c3:fb72:c2f9:61d9 in zone Wi-Fi as source for IPv6
+2025-12-19T14:19:50Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2025-12-19T14:19:50Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2025-12-19T14:19:50Z INF ICMP proxy will use 192.168.0.7 as source for IPv4
+2025-12-19T14:19:50Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.192.47
+2025-12-19T14:19:50Z INF ICMP proxy will use 240f:9a:4bd5:1:d9c3:fb72:c2f9:61d9 in zone Wi-Fi as source for IPv6
+2025-12-19T14:19:50Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2025-12-19T14:19:51Z INF Registered tunnel connection connIndex=0 connection=3d022618-d644-4dc1-ac40-d12c2b327fe8 event=0 ip=198.41.192.47 location=kix03 protocol=quic
+2025-12-19T14:19:51Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.200.73
+2025-12-19T14:19:51Z INF Registered tunnel connection connIndex=1 connection=6b0744ad-08ab-4516-bfd3-59ec2a9a5a69 event=0 ip=198.41.200.73 location=kix06 protocol=quic
