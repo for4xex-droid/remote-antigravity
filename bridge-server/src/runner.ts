@@ -14,6 +14,21 @@ const CHAT_FILE_PATH = path.resolve(__dirname, '../../mobile-chat.md');
 
 // Global state for command execution
 let currentDir = process.cwd();
+
+// Auto-navigate to Project Root if running from inside bridge-server
+// Canonical root based on script location (assuming standard structure of bridge-server/src or bridge-server/dist)
+const projectRoot = path.resolve(__dirname, '../../');
+
+// If current cwd is inside bridge-server, switch to projectRoot
+if (currentDir.includes('bridge-server')) {
+    console.log(`📂 Detected execution inside bridge-server. Switching context to Project Root: ${projectRoot}`);
+    currentDir = projectRoot;
+    try {
+        process.chdir(currentDir);
+    } catch (e) {
+        console.error(`⚠️ Failed to change directory to ${currentDir}:`, e);
+    }
+}
 let pendingCommand: string | null = null;
 
 const DANGEROUS_COMMANDS = ['del', 'rm', 'rmdir', 'rd', 'format', 'shutdown', 'reboot', 'taskkill', 'mkfs'];
@@ -167,6 +182,56 @@ console.log('🤖 Antigravity Runner started.');
 console.log(`📂 Watching: ${CHAT_FILE_PATH}`);
 
 let isThinking = false;
+
+// Helper: Execute command with safety checks
+async function executeCommand(command: string): Promise<string> {
+    // Check for dangerous commands
+    const lowerCmd = command.toLowerCase();
+    const isDangerous = DANGEROUS_COMMANDS.some(danger => {
+        const regex = new RegExp(`\\b${danger}\\b`, 'i');
+        return regex.test(lowerCmd);
+    });
+
+    if (isDangerous) {
+        return `⚠️ **警告**: 危険なコマンドが含まれている可能性があります。\n\n\`${command}\`\n\n実行は保留されました。ユーザーが承認する場合のみ 'y' または 'yes' と入力してください。`;
+    }
+
+    // Special handling: cd command
+    if (command.startsWith('cd ')) {
+        const targetPath = command.slice(3).trim();
+        try {
+            const newPath = path.resolve(currentDir, targetPath);
+            if (fs.existsSync(newPath) && fs.statSync(newPath).isDirectory()) {
+                process.chdir(newPath);
+                currentDir = newPath;
+                return `📂 Directory changed to:\n${currentDir}`;
+            } else {
+                throw new Error('Directory does not exist');
+            }
+        } catch (err: any) {
+            return `❌ cd failed: ${err.message}`;
+        }
+    }
+
+    // Windows encoding fix
+    const fullCommand = process.platform === 'win32' ? `chcp 65001 > nul && ${command}` : command;
+
+    return new Promise((resolve) => {
+        exec(fullCommand, { cwd: currentDir, encoding: 'utf-8' }, (error, stdout, stderr) => {
+            let output = "";
+            if (error) output += `💀 Error:\n${error.message}\n\n`;
+            if (stderr) output += `⚠️ Stderr:\n${stderr}\n\n`;
+            if (stdout) output += `✅ Stdout:\n${stdout}`;
+            if (!output) output = "✅ Executed (No output)";
+
+            // Truncate output
+            if (output.length > 4000) {
+                output = output.substring(0, 4000) + "\n...(truncated)";
+            }
+            resolve(output);
+        });
+    });
+}
 
 async function processFileContext(content: string) {
     if (isThinking) return;
@@ -544,6 +609,20 @@ async function processFileContext(content: string) {
 
             console.log('🗣️ Responding...');
             await fileBridge.writeMessage(response, 'agent');
+
+            // AI-Triggered Command Execution
+            const lines = response.split('\n');
+            const commandLine = lines.find(line => line.trim().startsWith('/run '));
+
+            if (commandLine) {
+                const cmd = commandLine.trim().substring(5).trim();
+                console.log(`🤖 AI Agent triggering command: ${cmd}`);
+
+                // Use executeCommand helper
+                const output = await executeCommand(cmd);
+                // Send Observation back to chat
+                await fileBridge.writeMessage(`[Agent System]: Executed '${cmd}'\n${output}`, 'agent');
+            }
         } catch (error) {
             console.error('💥 AI Error:', error);
             await fileBridge.writeMessage(`エラーが発生しました: 全てのモデルで生成に失敗しました。\n詳細: ${error}`, 'agent');

@@ -1,0 +1,48 @@
+
+> bridge-server@1.0.0 dev
+> ts-node src/index.ts
+
+📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+📁 FileBridge initialized: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+🚀 Bridge Server running on http://localhost:3001
+📡 Socket.io ready for connections
+Client connected: heBPWOHXeSt2Fpw6AAAB
+Client disconnected: heBPWOHXeSt2Fpw6AAAB
+Client connected: udsQ0WQZ2mc8tTFXAAAD
+🎤 Received voice audio: audio/webm; codecs=opus, 457846 bytes
+💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766155140890.webm
+📝 Written voice tag to file
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9561441
+DEBUG: Last Agent timestamp: 23:39:04
+DEBUG: Matched content length: 36
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 👂 Hears: "今までの内容をまとめてリードme.mdを更新して"
+DEBUG: Last 100 chars: 👂 Hears: "今までの内容をまとめてリードme.mdを更新して"
+✅ Message emitted to clients (timestamp: 23:39:04)
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9561845
+DEBUG: Last Agent timestamp: 23:39:10
+DEBUG: Matched content length: 382
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 承知いたしました。まだこのセッションでの「これまでの内容」は特にありませんが、私の役割とシステムに関する情報をもとに、`README.md` を作成・更新します。
+
+どのような情報を `README.
+DEBUG: Last 100 chars: イン**: コーディング規約、安全性ガイドライン、ファイル操作機能について。
+
+ご希望の内容があれば教えてください。特に指示がなければ、私の情報に基づいた初期の `README.md` を作成します。
+✅ Message emitted to clients (timestamp: 23:39:10)
+🎤 Received voice audio: audio/webm; codecs=opus, 44828 bytes
+💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766155182811.webm
+📝 Written voice tag to file
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9561956
+DEBUG: Last Agent timestamp: 23:39:45
+DEBUG: Matched content length: 23
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 👂 Hears: "特に指示はありません。"
+DEBUG: Last 100 chars: 👂 Hears: "特に指示はありません。"
+✅ Message emitted to clients (timestamp: 23:39:45)
