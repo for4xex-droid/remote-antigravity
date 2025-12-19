@@ -17,3 +17,6 @@
 2025-12-19T13:59:30Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.200.193
 2025-12-19T13:59:31Z INF Registered tunnel connection connIndex=1 connection=059e499e-6256-4552-b064-79ce18854938 event=0 ip=198.41.200.193 location=kix05 protocol=quic
 2025-12-19T13:59:31Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.67
+2025-12-19T13:59:31Z INF Registered tunnel connection connIndex=2 connection=5c3f8a6a-cf04-4a54-8e1c-c24189e25caf event=0 ip=198.41.192.67 location=kix04 protocol=quic
+2025-12-19T13:59:32Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.63
+2025-12-19T13:59:32Z INF Registered tunnel connection connIndex=3 connection=3ee8a71c-5662-4098-8a58-3409e6b31e03 event=0 ip=198.41.200.63 location=kix06 protocol=quic

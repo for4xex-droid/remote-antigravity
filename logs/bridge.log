@@ -1,0 +1,64 @@
+
+> bridge-server@1.0.0 dev
+> ts-node src/index.ts
+
+📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+📁 FileBridge initialized: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+🚀 Bridge Server running on http://localhost:3001
+📡 Socket.io ready for connections
+Client connected: J-V8XKRJtQEqkB2xAAAB
+Client disconnected: J-V8XKRJtQEqkB2xAAAB
+Client connected: FiXhyWZNu-SuZlgaAAAD
+Client disconnected: FiXhyWZNu-SuZlgaAAAD
+Client connected: pSDgqYH8mFlBn-oIAAAF
+🎤 Received voice audio: audio/webm; codecs=opus, 177212 bytes
+💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766152807057.webm
+📝 Written voice tag to file
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9559911
+DEBUG: Last Agent timestamp: 23:00:10
+DEBUG: Matched content length: 58
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 👂 Hears: "ハロー . テキスト という ファイル を 作っ て 中身 は ハロー フロム ジェミニ で"
+DEBUG: Last 100 chars: 👂 Hears: "ハロー . テキスト という ファイル を 作っ て 中身 は ハロー フロム ジェミニ で"
+✅ Message emitted to clients (timestamp: 23:00:10)
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9560011
+DEBUG: Last Agent timestamp: 23:00:11
+DEBUG: Matched content length: 78
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: <write file="ハロー.テキスト">
+ハロー フロム ジェミニ
+</write>
+
+✅ 以下のファイルを作成/更新しました: `ハロー.テキスト`
+DEBUG: Last 100 chars: <write file="ハロー.テキスト">
+ハロー フロム ジェミニ
+</write>
+
+✅ 以下のファイルを作成/更新しました: `ハロー.テキスト`
+✅ Message emitted to clients (timestamp: 23:00:11)
+🎤 Received voice audio: audio/webm; codecs=opus, 1508 bytes
+💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766152914808.webm
+📝 Written voice tag to file
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9560118
+DEBUG: Last Agent timestamp: 23:01:57
+DEBUG: Matched content length: 19
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 👂 Hears: "了解しました。"
+DEBUG: Last 100 chars: 👂 Hears: "了解しました。"
+✅ Message emitted to clients (timestamp: 23:01:57)
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9560149
+DEBUG: Last Agent timestamp: 23:01:58
+DEBUG: Matched content length: 9
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 承知いたしました。
+DEBUG: Last 100 chars: 承知いたしました。
+✅ Message emitted to clients (timestamp: 23:01:58)
+Client disconnected: pSDgqYH8mFlBn-oIAAAF

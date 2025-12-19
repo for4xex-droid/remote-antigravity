@@ -42,3 +42,11 @@ Thumbs.db
 !package-lock.json
 !tsconfig.json
 !jest.config.js
+
+# Uploads (Voice & Screenshots)
+bridge-server/uploads/*
+!bridge-server/uploads/.gitkeep
+
+# Generated test files
+*.webm
+ハロー.テキスト
