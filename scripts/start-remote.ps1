@@ -33,30 +33,30 @@ if (-not (Test-Path $logDir)) {
 Write-Host ""
 Write-Host "🚀 Starting Bridge Server..." -ForegroundColor Cyan
 $bridgeDir = Join-Path $PSScriptRoot "..\bridge-server"
-Start-Process -FilePath "npm" -ArgumentList "run", "dev" -WorkingDirectory $bridgeDir -WindowStyle Hidden -RedirectStandardOutput "$logDir\bridge.log" -RedirectStandardError "$logDir\bridge-error.log"
+Start-Process -FilePath "npm.cmd" -ArgumentList "run", "dev" -WorkingDirectory $bridgeDir -WindowStyle Hidden -RedirectStandardOutput "$logDir\bridge.log" -RedirectStandardError "$logDir\bridge-error.log"
+
+Write-Host "🤖 Starting Antigravity Runner..." -ForegroundColor Cyan
+Start-Process -FilePath "npm.cmd" -ArgumentList "run", "runner" -WorkingDirectory $bridgeDir -WindowStyle Hidden -RedirectStandardOutput "$logDir\runner.log" -RedirectStandardError "$logDir\runner-error.log"
 
 Write-Host "🚀 Starting UI Server..." -ForegroundColor Cyan
 $uiDir = Join-Path $PSScriptRoot "..\mobile-client"
-Start-Process -FilePath "npm" -ArgumentList "run", "dev" -WorkingDirectory $uiDir -WindowStyle Hidden -RedirectStandardOutput "$logDir\ui.log" -RedirectStandardError "$logDir\ui-error.log"
+Start-Process -FilePath "npm.cmd" -ArgumentList "run", "dev" -WorkingDirectory $uiDir -WindowStyle Hidden -RedirectStandardOutput "$logDir\ui.log" -RedirectStandardError "$logDir\ui-error.log"
 
 Start-Sleep -Seconds 5
 
-Write-Host "☁️ Starting Cloudflare Tunnels..." -ForegroundColor Cyan
-# Frontend Tunnel
-Start-Process -FilePath "cloudflared" -ArgumentList "tunnel", "--url", "http://localhost:3000" -WindowStyle Hidden -RedirectStandardOutput "$logDir\tunnel-frontend.log" -RedirectStandardError "$logDir\tunnel-frontend-error.log"
-
-Start-Sleep -Seconds 2
-
-# Backend Tunnel
-Start-Process -FilePath "cloudflared" -ArgumentList "tunnel", "--url", "http://localhost:3001" -WindowStyle Hidden -RedirectStandardOutput "$logDir\tunnel-backend.log" -RedirectStandardError "$logDir\tunnel-backend-error.log"
+Write-Host "☁️ Starting Cloudflare Tunnel (Named)..." -ForegroundColor Cyan
+# Named Tunnel (antigravity-link)
+# config.yml is in the root directory
+$configPath = Join-Path $PSScriptRoot "..\config.yml"
+Start-Process -FilePath "cloudflared" -ArgumentList "tunnel", "--config", $configPath, "run", "antigravity-link" -WindowStyle Hidden -RedirectStandardOutput "$logDir\tunnel.log" -RedirectStandardError "$logDir\tunnel-error.log"
 
 Start-Sleep -Seconds 5
 
 Write-Host ""
 Write-Host "✅ Remote Bridge environment is ACTIVE!" -ForegroundColor Green
 Write-Host ""
-Write-Host "📋 Check tunnel URLs in logs:" -ForegroundColor Yellow
-Write-Host "   Frontend: $logDir\tunnel-frontend-error.log"
-Write-Host "   Backend:  $logDir\tunnel-backend-error.log"
+Write-Host "🌍 Public URLs (Fixed):" -ForegroundColor Yellow
+Write-Host "   Frontend: https://agent.motista.online"
+Write-Host "   Backend:  https://socket.motista.online"
 Write-Host ""
 Write-Host "📱 Next: Run 'node wait-for-change.js' to start listening for mobile commands."

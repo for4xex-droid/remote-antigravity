@@ -63,6 +63,24 @@ export class FileBridge extends EventEmitter {
     }
 
     /**
+     * Write an image message from mobile to the file
+     */
+    async addImageMessage(message: string, imagePath: string, sender: 'user' | 'agent' = 'user'): Promise<void> {
+        const timestamp = new Date().toLocaleTimeString('ja-JP', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        const prefix = sender === 'user' ? '[User]' : '[Agent]';
+        // Embedding the image path in markdown format
+        // Also keeping the text message if provided
+        const content = `\n${prefix} (${timestamp}): ${message}\n![IMAGE](${imagePath})\n`;
+
+        await fs.promises.appendFile(this.filePath, content, 'utf8');
+        this.lastContent = await fs.promises.readFile(this.filePath, 'utf8');
+    }
+
+    /**
      * Read the current file content
      */
     async readContent(): Promise<string> {

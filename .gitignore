@@ -20,8 +20,8 @@ coverage/
 .env.production.local
 
 # Logs
-logs/
-*.log
+# logs/
+# *.log
 npm-debug.log*
 
 # OS generated files

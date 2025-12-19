@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { Message } from '@/types/agent';
 
-const BRIDGE_URL = process.env.NEXT_PUBLIC_BRIDGE_URL || 'https://emerald-zope-branches-netscape.trycloudflare.com';
+const BRIDGE_URL = process.env.NEXT_PUBLIC_BRIDGE_URL || 'https://socket.motista.online';
 
 export type AgentStatus = 'idle' | 'thinking' | 'acting' | 'error';
 
@@ -13,6 +13,7 @@ interface UseAgentSocketReturn {
     status: AgentStatus;
     isConnected: boolean;
     sendMessage: (content: string) => void;
+    uploadImage: (file: File) => Promise<void>;
     stopAgent: () => void;
 }
 
@@ -49,6 +50,14 @@ export function useAgentSocket(): UseAgentSocketReturn {
 
         // Chat events
         socket.on('chat:receive', (message: Message) => {
+            console.log('📩 chat:receive event:', {
+                id: message.id,
+                role: message.role,
+                contentLength: message.content?.length || 0,
+                contentPreview: message.content?.substring(0, 100),
+                hasImage: message.content?.includes('![IMAGE]'),
+                hasDataUri: message.content?.includes('data:image')
+            });
             setMessages((prev) => [...prev, message]);
         });
 
@@ -95,11 +104,45 @@ export function useAgentSocket(): UseAgentSocketReturn {
         setStatus('idle');
     }, []);
 
+    const uploadImage = useCallback(async (file: File) => {
+        if (!BRIDGE_URL) return;
+
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            // Optimistically add a pending message? No, wait for server
+            const response = await fetch(`${BRIDGE_URL}/upload`, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            // UI Feedback: Add message to local state
+            const newMessage: Message = {
+                id: Date.now().toString(),
+                role: 'user',
+                content: '画像を送信しました 📷',
+                timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, newMessage]);
+
+            setStatus('idle');
+        } catch (error) {
+            console.error('Upload error:', error);
+            // Could add error state here
+        }
+    }, []);
+
     return {
         messages,
         status,
         isConnected,
         sendMessage,
+        uploadImage,
         stopAgent,
     };
 }

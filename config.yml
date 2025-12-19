@@ -1,0 +1,14 @@
+tunnel: 1298db94-d3f4-4286-83a7-d6238ab63676
+credentials-file: C:\Users\user\.cloudflared\1298db94-d3f4-4286-83a7-d6238ab63676.json
+
+ingress:
+  # UI (Frontend)
+  - hostname: agent.motista.online
+    service: http://localhost:3000
+
+  # API (Backend/Socket)
+  - hostname: socket.motista.online
+    service: http://localhost:3001
+
+  # Returns 404 for any other traffic
+  - service: http_status:404

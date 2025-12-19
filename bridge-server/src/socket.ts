@@ -8,25 +8,82 @@ const CHAT_FILE_PATH = process.env.CHAT_FILE_PATH ||
 
 let fileBridge: FileBridge | null = null;
 
+export function getFileBridge(): FileBridge | null {
+    return fileBridge;
+}
+
 export function setupSocket(io: Server): void {
     // Initialize FileBridge
     fileBridge = new FileBridge({ filePath: CHAT_FILE_PATH });
     fileBridge.startWatching();
 
-    // When file changes (agent responded), broadcast to all clients
-    fileBridge.on('fileChanged', (newContent: string) => {
-        console.log('📄 File changed, broadcasting to clients');
+    // Track the timestamp of the last sent agent message to avoid duplicates
+    let lastSentAgentTimestamp: string | null = null;
 
-        // Parse the new content to extract agent messages
-        const agentMessageMatch = newContent.match(/\[Agent\].*?:\s*(.+)/);
-        if (agentMessageMatch) {
-            io.emit('chat:receive', {
-                id: Date.now().toString(),
-                role: 'agent',
-                content: agentMessageMatch[1].trim(),
-                timestamp: Date.now()
-            });
-            io.emit('agent:status', { status: 'idle' });
+    // When file changes (agent responded), broadcast to all clients
+    fileBridge.on('fileChanged', async () => {
+        console.log('📄 File changed, reading full content...');
+
+        try {
+            // Read the FULL file content to properly parse the last Agent message
+            const fullContent = await fileBridge!.readContent();
+            console.log('DEBUG: fullContent length:', fullContent.length);
+
+            // Use position-based parsing instead of line-based (more reliable)
+            // Find the LAST [Agent] tag
+            const lastAgentPos = fullContent.lastIndexOf('[Agent]');
+
+            if (lastAgentPos === -1) {
+                console.log('⚠️ No agent message found in file');
+                return;
+            }
+
+            // Extract timestamp from the [Agent] (HH:MM:SS): pattern
+            const timestampMatch = fullContent.substring(lastAgentPos, lastAgentPos + 30).match(/\[Agent\]\s*\((\d{2}:\d{2}:\d{2})\):/);
+            if (!timestampMatch) {
+                console.log('⚠️ Could not parse Agent timestamp');
+                return;
+            }
+            const lastAgentTimestamp = timestampMatch[1];
+
+            // Find where the content starts (after the timestamp and colon)
+            const contentStart = lastAgentPos + timestampMatch[0].length;
+
+            // Find the next [User] or [Agent] tag (whichever comes first after current position)
+            let contentEnd = fullContent.length;
+            const nextUser = fullContent.indexOf('[User]', contentStart);
+            const nextAgent = fullContent.indexOf('[Agent]', contentStart);
+
+            if (nextUser !== -1) contentEnd = Math.min(contentEnd, nextUser);
+            if (nextAgent !== -1) contentEnd = Math.min(contentEnd, nextAgent);
+
+            // Extract and trim the content
+            const content = fullContent.substring(contentStart, contentEnd).trim();
+
+            console.log('DEBUG: Last Agent timestamp:', lastAgentTimestamp);
+            console.log('DEBUG: Matched content length:', content.length);
+            console.log('DEBUG: Content contains IMAGE:', content.includes('![IMAGE]'));
+            console.log('DEBUG: Content contains data:', content.includes('data:image'));
+            console.log('DEBUG: First 100 chars:', content.substring(0, 100));
+            console.log('DEBUG: Last 100 chars:', content.substring(Math.max(0, content.length - 100)));
+
+            // Only emit if this is a new message (different timestamp)
+            if (lastAgentTimestamp !== lastSentAgentTimestamp) {
+                lastSentAgentTimestamp = lastAgentTimestamp;
+
+                io.emit('chat:receive', {
+                    id: Date.now().toString(),
+                    role: 'agent',
+                    content: content,
+                    timestamp: Date.now()
+                });
+                io.emit('agent:status', { status: 'idle' });
+                console.log('✅ Message emitted to clients (timestamp:', lastAgentTimestamp + ')');
+            } else {
+                console.log('⏭️ Skipping duplicate message (same timestamp:', lastAgentTimestamp + ')');
+            }
+        } catch (error) {
+            console.error('❌ Error reading file:', error);
         }
     });
 

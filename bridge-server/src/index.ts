@@ -12,7 +12,8 @@ const io = new Server(httpServer, {
         // "*" for testing via Quick Tunnel. Replace with specific domain in production.
         origin: process.env.CORS_ORIGIN || '*',
         methods: ['GET', 'POST']
-    }
+    },
+    maxHttpBufferSize: 2e7 // 20MB for large screenshots
 });
 
 setupSocket(io);
