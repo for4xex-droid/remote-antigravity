@@ -93,24 +93,57 @@ async function selectBestModel() {
     }
 }
 
-// Helper to read rules
+const MAX_TREE_DEPTH = 2;
+// MAX_OUTPUT_LENGTH is used in executeCommand
+
+function getFileTree(dir: string, depth: number = 0): string {
+    if (depth > MAX_TREE_DEPTH) return "";
+    let output = "";
+    try {
+        const files = fs.readdirSync(dir);
+        const ignoreList = ['.git', 'node_modules', '.next', 'dist', 'coverage', 'build', '.vscode', 'uploads', 'logs'];
+
+        files.forEach(file => {
+            if (ignoreList.includes(file)) return;
+            if (depth > 0 && file.startsWith('.')) return;
+
+            const fullPath = path.join(dir, file);
+            let isDir = false;
+            try { isDir = fs.statSync(fullPath).isDirectory(); } catch (e) { }
+
+            const indent = "  ".repeat(depth);
+            const icon = isDir ? "📁" : "📄";
+            output += `${indent}${icon} ${file}\n`;
+
+            if (isDir) {
+                output += getFileTree(fullPath, depth + 1);
+            }
+        });
+    } catch (e) { return ""; }
+    return output;
+}
+
+// Helper to read rules and context
 function getSystemContext(): string {
+    let context = "【SYSTEM CONTEXT】\n";
     try {
         const rulePath = path.resolve(__dirname, '../../rule.md');
         if (fs.existsSync(rulePath)) {
-            const rules = fs.readFileSync(rulePath, 'utf-8');
-            return `
-【SYSTEM CONTEXT & RULES】
-以下の開発ガイドラインとシステム能力を厳守して回答してください。
---------------------------------------------------
-${rules}
---------------------------------------------------
-`;
+            context += fs.readFileSync(rulePath, 'utf-8') + "\n";
         }
     } catch (e) {
         console.error("⚠️ rule.md load failed:", e);
     }
-    return "";
+
+    // Inject File Tree (The Map)
+    // Use currentDir (which is auto-corrected to project root)
+    context += `
+【CURRENT PROJECT STRUCTURE (Map)】
+Current Directory: ${currentDir}
+File Tree (Depth: ${MAX_TREE_DEPTH}):
+${getFileTree(currentDir)}
+`;
+    return context;
 }
 
 async function initGeminiChatSession() {
@@ -224,9 +257,9 @@ async function executeCommand(command: string): Promise<string> {
             if (stdout) output += `✅ Stdout:\n${stdout}`;
             if (!output) output = "✅ Executed (No output)";
 
-            // Truncate output
-            if (output.length > 4000) {
-                output = output.substring(0, 4000) + "\n...(truncated)";
+            // Truncate output (Safety: Prevent Context Explosion)
+            if (output.length > 2000) {
+                output = output.substring(0, 2000) + "\n...(truncated to 2000 chars)";
             }
             resolve(output);
         });
