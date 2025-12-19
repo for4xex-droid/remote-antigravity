@@ -14,6 +14,9 @@ const CHAT_FILE_PATH = path.resolve(__dirname, '../../mobile-chat.md');
 
 // Global state for command execution
 let currentDir = process.cwd();
+let pendingCommand: string | null = null;
+
+const DANGEROUS_COMMANDS = ['del', 'rm', 'rmdir', 'rd', 'format', 'shutdown', 'reboot', 'taskkill', 'mkfs'];
 
 if (!API_KEY) {
     console.error('❌ Error: GEMINI_API_KEY is not set.');
@@ -277,8 +280,51 @@ async function processFileContext(content: string) {
         }
 
         // Feature: Command Execution (/run)
-        if (messageText.startsWith('/run ')) {
-            const command = messageText.slice(5).trim();
+        if (messageText.startsWith('/run ') || (pendingCommand && /^(y|yes|ok|はい)$/i.test(messageText.trim()))) {
+            let command = "";
+
+            // Case 1: Confirming a pending command
+            if (pendingCommand && /^(y|yes|ok|はい)$/i.test(messageText.trim())) {
+                command = pendingCommand;
+                pendingCommand = null;
+                console.log(`🔓 Confirmation received. Executing: ${command}`);
+                await fileBridge.writeMessage(`🔓 承認されました。実行します...`, 'agent'); // Feedback
+            }
+            // Case 2: Rejecting a pending command (New input that is NOT yes)
+            else if (pendingCommand) {
+                pendingCommand = null;
+                await fileBridge.writeMessage(`🛑 コマンド実行をキャンセルしました。`, 'agent');
+                // Don't return, let it process as a new command or chat if it starts with /run
+                if (!messageText.startsWith('/run ')) {
+                    // Just a chat message/cancellation
+                    isThinking = false;
+                    return;
+                }
+                command = messageText.slice(5).trim();
+            }
+            // Case 3: New /run command
+            else {
+                command = messageText.slice(5).trim();
+            }
+
+            // Check for dangerous commands (Only for new commands, not already confirmed ones)
+            // Simple check: splitting by space and checking first token + checking presence of dangerous words
+            // This is a basic filter.
+            const lowerCmd = command.toLowerCase();
+            const isDangerous = DANGEROUS_COMMANDS.some(danger => {
+                // Check exact command match (e.g. "del") or as a word boundary (e.g. "del file", but not "model")
+                const regex = new RegExp(`\\b${danger}\\b`, 'i');
+                return regex.test(lowerCmd);
+            });
+
+            if (isDangerous && !messageText.match(/^(y|yes|ok|はい)$/i)) { // Double check we aren't confirming
+                pendingCommand = command;
+                console.log(`⚠️ Dangerous command detected: ${command}`);
+                await fileBridge.writeMessage(`⚠️ **警告**: 危険なコマンドが含まれている可能性があります。\n\n\`${command}\`\n\n本当に実行しますか？ (y/n)`, 'agent');
+                isThinking = false;
+                return;
+            }
+
             console.log(`💻 Executing: ${command} in ${currentDir}`);
 
             // Special handling: cd command

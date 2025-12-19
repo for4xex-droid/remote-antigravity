@@ -1,0 +1,13 @@
+
+> mobile-client@0.1.0 dev
+> next dev
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Local:         http://localhost:3000
+   - Network:       http://192.168.0.7:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 1887ms
+ ○ Compiling / ...
+ GET / 200 in 3.9s (compile: 3.5s, render: 386ms)
