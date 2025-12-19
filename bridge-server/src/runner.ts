@@ -28,6 +28,7 @@ if (!API_KEY) {
 // Initialize GenAI
 const genAI = API_KEY ? new GoogleGenerativeAI(API_KEY) : null;
 let activeModelName: string | null = null;
+let chatSession: any;
 
 // Function to verify and select the best available model
 async function selectBestModel() {
@@ -77,33 +78,62 @@ async function selectBestModel() {
     }
 }
 
+async function initGeminiChatSession() {
+    if (!genAI || !activeModelName) {
+        console.warn('⚠️ Gemini or active model not initialized, skipping chat session setup.');
+        return;
+    }
+
+    const model = genAI.getGenerativeModel({ model: activeModelName });
+    chatSession = model.startChat({
+        history: [
+            {
+                role: "user",
+                parts: [{
+                    text: `You are the Antigravity Agent. You live in the user's computer. 
+You can see the screen when requested. 
+Be helpful and concise.
+
+You have access to the following capabilities:
+1. **Execute Commands**: Output lines starting with "/run " to execute commands.
+   - Example: "/run dir" or "/run npm install"
+
+2. **Create/Update Files**: To create or edit a file, output the content wrapped in a <write> tag.
+   - Format:
+     <write file="path/to/filename.ext">
+     file content here
+     </write>
+   - You can write multiple files in one response.
+   - Always use forward slashes "/" for paths, or standard commands.
+   - If the file exists, it will be overwritten.
+
+3. **Voice Input**: The user may speak to you. "run [command]" triggers commands.` }],
+            },
+            {
+                role: "model",
+                parts: [{ text: "Understood. I am ready to act as your autonomous engineer. I can run commands and write files directly to your system." }],
+            },
+        ],
+    });
+    console.log(`✅ Gemini initialized with model: ${activeModelName}`);
+}
+
 // Call discovery on start
-selectBestModel();
+selectBestModel().then(() => {
+    initGeminiChatSession();
+});
 
 async function generateWithFallback(parts: any[]): Promise<string> {
-    if (!genAI) throw new Error('GenAI not initialized');
+    if (!chatSession) throw new Error('Chat session not initialized');
 
-    // Explicit list if discovery failed, otherwise just user the discovered one
-    let candidates = activeModelName ? [activeModelName] : [
-        'gemini-1.5-flash',
-        'gemini-1.5-pro',
-        'gemini-pro',
-        'gemini-1.0-pro'
-    ];
-
-    let lastError;
-    for (const modelName of candidates) {
-        try {
-            console.log(`🤖 Using model: ${modelName}...`);
-            const model = genAI.getGenerativeModel({ model: modelName });
-            const result = await model.generateContent(parts);
-            return result.response.text();
-        } catch (e: any) {
-            console.warn(`⚠️ Failed with ${modelName}: ${e.message?.split('\n')[0]}`);
-            lastError = e;
-        }
+    try {
+        console.log(`🤖 Sending message to model: ${activeModelName}...`);
+        const result = await chatSession.sendMessage(parts);
+        return result.response.text();
+    } catch (e: any) {
+        console.error(`⚠️ Failed to send message: ${e.message?.split('\n')[0]}`);
+        throw e;
     }
-    throw lastError || new Error('All models failed');
 }
 
 // Initialize FileBridge for easy reading/writing
@@ -137,6 +167,10 @@ async function processFileContext(content: string) {
     if (lastUserLineIndex > lastAgentLineIndex) {
         if (!genAI) {
             console.log('⚠️ API Key missing, cannot respond automatically.');
+            return;
+        }
+        if (!chatSession) {
+            console.log('⚠️ Chat session not initialized, cannot respond automatically.');
             return;
         }
 
@@ -399,7 +433,6 @@ async function processFileContext(content: string) {
         }
 
         // Feature: Screenshot Trigger
-        // Feature: Screenshot Trigger
         if (messageText.includes('画面') || messageText.includes('スクショ') || messageText.includes('キャプチャ')) {
             console.log('📸 Screenshot requested');
             try {
@@ -437,7 +470,39 @@ async function processFileContext(content: string) {
 
         try {
             console.log('🧠 Thinking...');
-            const response = await generateWithFallback(parts);
+            let response = await generateWithFallback(parts);
+
+            // Feature: Parse <write> tags and create files
+            const fileRegex = /<write\s+file="([^"]+)">([\s\S]*?)<\/write>/g;
+            let match;
+            let filesWritten = [];
+
+            while ((match = fileRegex.exec(response)) !== null) {
+                const relativePath = match[1];
+                const fileContent = match[2].trim();
+
+                try {
+                    const fullPath = path.resolve(currentDir, relativePath);
+                    const dirPath = path.dirname(fullPath);
+
+                    if (!fs.existsSync(dirPath)) {
+                        fs.mkdirSync(dirPath, { recursive: true });
+                    }
+
+                    fs.writeFileSync(fullPath, fileContent, 'utf8');
+                    console.log(`💾 Created file: ${fullPath}`);
+                    filesWritten.push(relativePath);
+
+                } catch (err: any) {
+                    console.error(`❌ Failed to write file ${relativePath}:`, err);
+                    response += `\n\n❌ Failed to write ${relativePath}: ${err.message}`;
+                }
+            }
+
+            if (filesWritten.length > 0) {
+                const fileList = filesWritten.map(f => `\`${f}\``).join(', ');
+                response += `\n\n✅ 以下のファイルを作成/更新しました: ${fileList}`;
+            }
 
             console.log('🗣️ Responding...');
             await fileBridge.writeMessage(response, 'agent');
