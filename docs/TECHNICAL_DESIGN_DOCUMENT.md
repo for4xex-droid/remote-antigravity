@@ -85,10 +85,33 @@ graph TB
     SocketIO --> FileBridge
     FileBridge --> ChatFile
     
-    WaitScript --> ChatFile
     Agent --> WaitScript
     Agent --> ChatFile
 ```
+
+### 2.3 Antigravity Swarm (Multi-Agent Architecture)
+
+**Concept:**
+単一のAGIモデルではなく、役割の異なる複数の「専門家エージェント」を Node.js の非同期並列処理を用いて協調させ、複雑なタスクを解決するアーキテクチャ。
+
+**Why Node.js?**
+LLMオーケストレーションにおける最大のボトルネックは「API待ち時間（I/O Latency）」である。
+Node.js の特徴である非同期ノンブッキングI/Oを活かし、複数のエージェントへのリクエストを並列(`Promise.all` / `Promise.allSettled`)に処理することで、Python（同期処理）と比較して圧倒的なスループットと応答速度を実現する。これにより、サーバーリソースをほとんど消費せずに大量のエージェントを同時稼働させることが可能。
+
+**Agent Structure:**
+`runner.ts` 拡張による軽量実装。外部ライブラリ（LangChain等）には依存しない。
+
+1.  **Commander (The Brain)**: ユーザー入力を解析し、必要なエージェントを選定・タスク分割を行う。
+2.  **Specialists (The Workers)**:
+    *   `Coder`: 実装担当。
+    *   `Reviewer`: セキュリティ・バグチェック担当。
+    *   `Architect`: 設計・方針策定担当。
+3.  **Synthesizer (The Output)**: 各エージェントの出力を統合し、最終回答を生成する。
+
+**Implementation Strategy:**
+*   **Parallel Execution**: `Promise.allSettled` を使用し、一部のエージェントが失敗しても全体を停止させない堅牢性を確保。
+*   **Rate Limiting**: Gemini API の RPM (Requests Per Minute) 制限を考慮し、同時実行数制御（Concurrency Control）の仕組み（例: `p-limit` 相当のロジック）を導入する。
+*   **Dynamic Role Switching**: プロンプトテンプレートの動的切り替えにより、単一のAPIクライアントで多様な人格を演じ分ける。
 
 ---
 

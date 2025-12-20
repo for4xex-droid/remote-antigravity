@@ -208,6 +208,41 @@ async function generateWithFallback(parts: any[]): Promise<string> {
     }
 }
 
+// --- Antigravity Swarm Architecture ---
+
+const ROLES = {
+    COMMANDER: "あなたは開発チームの司令塔(Commander)です。\nユーザーの抽象的な要望を分析し、開発者が理解できる明確な「技術仕様書」と「実装ステップ」に分解してください。\n出力は他のエージェントへの指示として使われます。",
+
+    CODER: "あなたは熟練のシニアソフトウェアエンジニア(Coder)です。\n与えられた仕様書に基づいて、TypeScript/Node.js/Next.jsを用いた高品質なコードを実装してください。\nコードは省略せず、実行可能な状態で出力してください。",
+
+    REVIEWER: "あなたはセキュリティと品質保証の専門家(Reviewer)です。\n提示された仕様書に基づいて、潜在的なバグ、セキュリティリスク、エッジケースを指摘してください。\nまた、必要なテストケースも列挙してください。",
+
+    SYNTHESIZER: "あなたはプロジェクトのテックリード(Synthesizer)です。\nCoderが書いたコードと、Reviewerの指摘を統合し、最終的な完成コードを作成してください。\nReviewerの指摘を反映してコードを修正・改善した上で、ユーザーに提示する最終回答を出力してください。"
+};
+
+async function askAgent(role: string, prompt: string): Promise<string> {
+    if (!genAI || !activeModelName) throw new Error("GenAI not initialized");
+
+    const model = genAI.getGenerativeModel({ model: activeModelName });
+    // Inject System Context + Role
+    const systemInstruction = `
+${getSystemContext()}
+
+【YOUR ROLE】
+${role}
+`;
+    try {
+        const result = await model.generateContent([
+            systemInstruction,
+            prompt
+        ]);
+        return result.response.text();
+    } catch (e: any) {
+        console.error(`⚠️ Agent generation failed: ${e.message}`);
+        return `Error: ${e.message}`;
+    }
+}
+
 // Initialize FileBridge for easy reading/writing
 const fileBridge = new FileBridge({ filePath: CHAT_FILE_PATH });
 
@@ -433,6 +468,55 @@ async function processFileContext(content: string) {
             } else {
                 parts.push({ text: messageText });
             }
+        }
+
+        // Feature: Antigravity Swarm (Multi-Agent)
+        if (messageText.startsWith('/swarm ')) {
+            const userRequest = messageText.slice(7).trim();
+            console.log(`🐝 Swarm Task Detected: ${userRequest}`);
+            await fileBridge.writeMessage(`🐝 **Antigravity Swarm Activated**\nTask: ${userRequest}\n\n指揮官が作戦を立案中...`, 'agent');
+
+            try {
+                // Phase 1: Commander
+                console.log('🐝 Commander is planning...');
+                const spec = await askAgent(ROLES.COMMANDER, `ユーザーの要望: ${userRequest}`);
+                await fileBridge.writeMessage(`👮 **Commander**: 仕様を策定しました。\n\n${spec}`, 'agent');
+
+                // Phase 2: Parallel Workers (Coder & Reviewer)
+                console.log('🐝 Workers are executing...');
+                await fileBridge.writeMessage(`👷 **Workers**: 実装とレビューを並列実行中...`, 'agent');
+
+                // Promise.allSettled for robustness
+                const results = await Promise.allSettled([
+                    askAgent(ROLES.CODER, `以下の仕様に基づいてコードを実装せよ:\n${spec}`),
+                    askAgent(ROLES.REVIEWER, `以下の仕様に基づいてリスク分析とテスト設計を行え:\n${spec}`)
+                ]);
+
+                const coderResult = results[0].status === 'fulfilled' ? results[0].value : `Error: ${results[0].reason}`;
+                const reviewerResult = results[1].status === 'fulfilled' ? results[1].value : `Error: ${results[1].reason}`;
+
+                // Phase 3: Synthesizer
+                console.log('🐝 Synthesizer is merging...');
+                await fileBridge.writeMessage(`👨‍💻 **Synthesizer**: 最終調整中...`, 'agent');
+
+                const finalOutput = await askAgent(ROLES.SYNTHESIZER, `
+【Coderの実装】
+${coderResult}
+
+【Reviewerの指摘】
+${reviewerResult}
+
+これらを統合し、最終的な回答を作成せよ。
+`);
+                await fileBridge.writeMessage(finalOutput, 'agent');
+
+            } catch (err: any) {
+                console.error(`💥 Swarm Error:`, err);
+                await fileBridge.writeMessage(`⚠️ Swarm Crashed: ${err.message}`, 'agent');
+            }
+
+            isThinking = false;
+            return;
         }
 
         // Feature: Command Execution (/run)
