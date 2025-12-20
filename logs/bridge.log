@@ -1,0 +1,21 @@
+
+> bridge-server@1.0.0 dev
+> ts-node src/index.ts
+
+📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+📁 FileBridge initialized: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+🚀 Bridge Server running on http://localhost:3001
+📡 Socket.io ready for connections
+Client connected: 6rLmUbFqwL5_Lk9IAAAB
+🎤 Received voice audio: audio/webm; codecs=opus, 272342 bytes
+💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766196305554.webm
+📝 Written voice tag to file
+📄 File changed, reading full content...
+DEBUG: fullContent length: 9566311
+DEBUG: Last Agent timestamp: 11:05:09
+DEBUG: Matched content length: 60
+DEBUG: Content contains IMAGE: false
+DEBUG: Content contains data: false
+DEBUG: First 100 chars: 👂 Hears: "えっと ここまでのプロジェクトの進捗状況をmemo.mdという、え、ファイルにまとめてください。"
+DEBUG: Last 100 chars: 👂 Hears: "えっと ここまでのプロジェクトの進捗状況をmemo.mdという、え、ファイルにまとめてください。"
+✅ Message emitted to clients (timestamp: 11:05:09)
