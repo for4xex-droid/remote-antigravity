@@ -13,5 +13,12 @@
 - 不明点があれば推測で進めず、エラーとして報告すること。
 
 ## 出力
-- `<write>` タグを使用して、ファイルを作成・更新してください。
-- ファイルパスはプロジェクトルートからの相対パスで正確に記述してください。
+## File Output Rule
+
+To create or update files, use this XML format ONLY (No Markdown code blocks):
+
+<write_file path="path/to/file.ext">
+CONTENT_HERE
+</write_file>
+
+Ensure the path is relative (e.g., "src/index.ts").

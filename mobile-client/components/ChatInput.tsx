@@ -34,6 +34,23 @@ export default function ChatInput({
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+    // Short-cut command listener
+    useEffect(() => {
+        const handleCommand = (e: any) => {
+            const cmd = e.detail;
+            if (cmd === '/yes') {
+                // Immediate send for /yes
+                onSend(cmd, null);
+            } else {
+                // Append or set for others
+                setInput(prev => prev + cmd);
+                textareaRef.current?.focus();
+            }
+        };
+        window.addEventListener('insert-command', handleCommand);
+        return () => window.removeEventListener('insert-command', handleCommand);
+    }, [onSend]);
+
     const handleSubmit = async () => {
         if (!input.trim() && !selectedImage) return;
 

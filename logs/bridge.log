@@ -1,0 +1,11 @@
+
+> bridge-server@1.0.0 dev
+> ts-node src/index.ts
+
+📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+📁 FileBridge initialized: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+⚡ Starting System HUD Monitoring...
+🚀 Bridge Server running on http://localhost:3001
+📡 Socket.io ready for connections
+Client connected: OKcd26rNWBBlXLHcAAAB
+Client connected: aT-7K0ncLe23sbGaAAAD

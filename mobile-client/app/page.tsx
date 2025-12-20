@@ -10,7 +10,7 @@ export default function Home() {
     const { messages, status, isConnected, sendMessage, sendAudio } = useAgentSocket();
 
     return (
-        <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+        <div className="flex flex-col h-[100dvh] bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans supports-[height:100dvh]:h-[100dvh]">
             {/* Header */}
             <header className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 shadow-sm flex justify-between items-center backdrop-blur-md sticky top-0 z-50">
                 <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
@@ -32,7 +32,7 @@ export default function Home() {
             </main>
 
             {/* Footer / Input Area */}
-            <footer className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md w-full max-w-3xl mx-auto pb-safe">
+            <footer className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md w-full max-w-3xl mx-auto pb-[env(safe-area-inset-bottom)] md:pb-4">
                 <ChatInput
                     onSend={sendMessage}
                     onSendAudio={sendAudio}

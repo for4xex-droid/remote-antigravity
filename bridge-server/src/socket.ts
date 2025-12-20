@@ -247,6 +247,15 @@ function startSystemMonitoring(io: Server) {
             };
 
             io.emit('system_stats', stats);
+
+            // Support for MemoryUsagePie component (Mission H)
+            io.emit('memory_usage', {
+                payload: {
+                    totalMemory: mem.total,
+                    usedMemory: mem.used
+                },
+                type: 'memory_usage'
+            });
         } catch (e) {
             console.error('Failed to fetch system stats:', e);
         }

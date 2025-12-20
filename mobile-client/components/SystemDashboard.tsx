@@ -5,6 +5,7 @@ import { useAgentSocket } from '../hooks/useAgentSocket';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Cpu, Zap, Activity } from 'lucide-react';
 import { clsx } from 'clsx';
+import MemoryUsagePie from './MemoryUsagePie';
 
 // Type for stats
 interface SystemStats {
@@ -117,6 +118,34 @@ export default function SystemDashboard() {
                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-green-500/10"></div>
                 <div className="absolute top-0 left-0 h-full w-[1px] bg-green-500/10"></div>
                 <div className="absolute top-0 right-0 h-full w-[1px] bg-green-500/10"></div>
+            </div>
+
+            {/* Command Shortcuts (Mission I: UX Polish) */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('insert-command', { detail: '/dev ' }))}
+                    className="bg-green-900/20 border border-green-500/30 text-green-400 text-[10px] py-1 px-2 rounded hover:bg-green-500/20 transition-colors uppercase"
+                >
+                    🚀 /dev [Task]
+                </button>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('insert-command', { detail: '/mode vision' }))}
+                    className="bg-blue-900/20 border border-blue-500/30 text-blue-400 text-[10px] py-1 px-2 rounded hover:bg-blue-500/20 transition-colors uppercase"
+                >
+                    👁️ /mode vision
+                </button>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('insert-command', { detail: '/run ' }))}
+                    className="bg-red-900/20 border border-red-500/30 text-red-400 text-[10px] py-1 px-2 rounded hover:bg-red-500/20 transition-colors uppercase"
+                >
+                    ⚡ /run [Cmd]
+                </button>
+                <button
+                    onClick={() => window.dispatchEvent(new CustomEvent('insert-command', { detail: '/yes' }))}
+                    className="bg-yellow-900/20 border border-yellow-500/30 text-yellow-400 text-[10px] py-1 px-2 rounded hover:bg-yellow-500/20 transition-colors uppercase"
+                >
+                    👍 /yes
+                </button>
             </div>
 
             {/* RAG Status (Simulated or Real) */}

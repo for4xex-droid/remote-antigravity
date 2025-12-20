@@ -1,0 +1,12 @@
+
+> bridge-server@1.0.0 runner
+> ts-node src/runner.ts
+
+[dotenv@17.2.3] injecting env (1) from ..\.env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+📂 Detected execution inside bridge-server. Switching context to Project Root: C:\Users\user\.gemini\remote-antigravity
+🔍 Discovering available models...
+✅ Selected Model: gemini-2.0-flash-exp
+🤖 Antigravity Runner started (Simplified Mode).
+📂 Watching: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+✅ Gemini initialized with model: gemini-2.0-flash-exp
