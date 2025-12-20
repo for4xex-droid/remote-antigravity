@@ -69,16 +69,15 @@ async function selectBestModel() {
         if (data.models) {
             const modelNames = data.models.map((m: any) => m.name.replace('models/', ''));
             console.log('📋 Available models:', modelNames.join(', '));
-
             // Priority list
+            // 'gemini-2.0-flash-exp' is generally free in preview but rate-limited.
+            // 'gemini-1.5-flash' is the most cost-effective paid option.
             const priorities = [
-                'gemini-1.5-flash',
+                'gemini-2.0-flash-exp', // Fast & Smart (Preview)
+                'gemini-1.5-flash',     // Cost Effective
+                'gemini-1.5-pro',       // Maximum Capability
                 'gemini-1.5-flash-002',
-                'gemini-1.5-flash-001',
-                'gemini-1.5-pro',
-                'gemini-1.5-pro-002',
-                'gemini-pro',
-                'gemini-1.0-pro'
+                'gemini-pro'
             ];
 
             for (const p of priorities) {
@@ -475,16 +474,25 @@ async function processFileContext(content: string) {
         let messageText = lines[lastUserLineIndex].replace(/\[User\] \(.*?\): /, '').trim();
         const parts: any[] = [];
 
+        console.log(`🔍 parsing user message from line ${lastUserLineIndex} to ${lines.length}`);
+
         // Multi-line and Image handling
         for (let i = lastUserLineIndex + 1; i < lines.length; i++) {
             const line = lines[i];
+            console.log(`  > Line ${i}: ${line.substring(0, 50)}`); // Debug scan
             if (line.startsWith('[User]') || line.startsWith('[Agent]')) break;
 
             // Image detection: ![IMAGE](path)
             const imgMatch = line.match(/!\[IMAGE\]\((.*?)\)/);
             if (imgMatch) {
                 const imgPathRelative = imgMatch[1];
-                const imgFullPath = path.resolve(__dirname, '../../', imgPathRelative);
+                // Resolving image path. 
+                // socket.ts writes relative path: "uploads/filename"
+                // file location is: bridge-server/uploads/filename
+                // runner.ts is in: bridge-server/src/runner.ts
+                // So we need to go up one level from src to bridge-server, then resolve uploads/...
+                const imgFullPath = path.resolve(__dirname, '../', imgPathRelative);
+                console.log(`🔍 Resolving Image Path: ${imgPathRelative} -> ${imgFullPath}`);
 
                 try {
                     const imgBuffer = fs.readFileSync(imgFullPath);
@@ -653,6 +661,36 @@ ${reviewerResult}
                 await fileBridge.writeMessage(`⚠️ Swarm Crashed: ${err.message}`, 'agent');
             }
 
+            isThinking = false;
+            return;
+        }
+
+        // Feature: Model Switching (/mode)
+        if (messageText.startsWith('/mode ')) {
+            const mode = messageText.slice(6).trim().toLowerCase();
+            let newModel = "";
+            let modeName = "";
+
+            if (mode === 'fast' || mode === 'flash' || mode === 'eco') {
+                newModel = 'gemini-1.5-flash';
+                modeName = "⚡ FAST / ECO Mode";
+            } else if (mode === 'smart' || mode === 'pro' || mode === 'brain') {
+                newModel = 'gemini-1.5-pro';
+                modeName = "🧠 SMART / PRO Mode";
+            } else if (mode === 'vision' || mode === 'v2' || mode === 'exp') {
+                newModel = 'gemini-2.0-flash-exp';
+                modeName = "👁️ VISION / V2 Mode";
+            } else {
+                await fileBridge.writeMessage(`⚠️ Unknown mode. Available: fast, smart, vision`, 'agent');
+                isThinking = false;
+                return;
+            }
+
+            console.log(`🔄 Switching to model: ${newModel}`);
+            activeModelName = newModel;
+            await initGeminiChatSession(); // Re-init session
+
+            await fileBridge.writeMessage(`🔄 **Model Switched**: Now using ${modeName} (${newModel})`, 'agent');
             isThinking = false;
             return;
         }

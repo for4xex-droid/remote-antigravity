@@ -106,12 +106,44 @@ export function setupSocket(io: Server): void {
         }
 
         // Handle chat messages from client
-        socket.on('chat:send', async (data: { content: string }) => {
-            console.log(`📨 Received from client: ${data.content.substring(0, 50)}...`);
+        socket.on('chat:send', async (data: { content: string; image?: string }) => {
+            console.log(`📨 Received from client: ${data.content.substring(0, 50)}... ${data.image ? '[Has Image]' : ''}`);
+
+            let messageContent = data.content;
+
+            // Handle Base64 Image
+            if (data.image) {
+                try {
+                    // Expecting data:image/png;base64,xxxx...
+                    const matches = data.image.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+                    if (matches) {
+                        const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+                        const base64Data = matches[2];
+                        const buffer = Buffer.from(base64Data, 'base64');
+                        const filename = `img_${Date.now()}.${ext}`;
+                        const filepath = path.join(__dirname, '../uploads', filename);
+
+                        // Ensure uploads directory exists
+                        if (!fs.existsSync(path.join(__dirname, '../uploads'))) {
+                            fs.mkdirSync(path.join(__dirname, '../uploads'));
+                        }
+
+                        fs.writeFileSync(filepath, buffer);
+                        console.log(`💾 Saved image to: ${filepath}`);
+
+                        // Append image tag to content
+                        // Using relative path for runner to pick up
+                        messageContent += `\n\n![IMAGE](uploads/${filename})`;
+                    }
+                } catch (e) {
+                    console.error('❌ Failed to process base64 image:', e);
+                    messageContent += '\n\n(Image upload failed)';
+                }
+            }
 
             // Write to file for Antigravity to read
             if (fileBridge) {
-                await fileBridge.writeMessage(data.content, 'user');
+                await fileBridge.writeMessage(messageContent, 'user');
                 console.log('📝 Written to file: mobile-chat.md');
             }
 

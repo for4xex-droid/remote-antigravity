@@ -7,7 +7,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 interface ChatInputProps {
-    onSend: (message: string) => void;
+    onSend: (message: string, image?: string | null) => void;
     onUploadImage?: (file: File) => Promise<void>;
     onSendAudio?: (blob: Blob, mimeType: string) => void;
     isLoading: boolean;
@@ -32,15 +32,18 @@ export default function ChatInput({
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
 
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
     const handleSubmit = async () => {
-        if (!input.trim()) return;
+        if (!input.trim() && !selectedImage) return;
 
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
             navigator.vibrate(10);
         }
 
-        onSend(input);
+        onSend(input, selectedImage);
         setInput('');
+        setSelectedImage(null);
         textareaRef.current?.focus();
     };
 
@@ -53,8 +56,12 @@ export default function ChatInput({
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file && onUploadImage) {
-            await onUploadImage(file);
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelectedImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
         }
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -146,6 +153,21 @@ export default function ChatInput({
                     onChange={handleFileSelect}
                 />
 
+                {/* Image Preview */}
+                {selectedImage && (
+                    <div className="absolute bottom-full left-0 mb-2 p-2 bg-black/80 backdrop-blur rounded-lg border border-white/10">
+                        <div className="relative">
+                            <img src={selectedImage} alt="Preview" className="h-20 w-auto rounded object-cover" />
+                            <button
+                                onClick={() => setSelectedImage(null)}
+                                className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1 text-white hover:bg-red-600"
+                            >
+                                <Square size={12} fill="currentColor" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 <button
                     onClick={() => fileInputRef.current?.click()}
                     className="p-3 rounded-full bg-white/5 text-white/50 hover:bg-white/10 hover:text-white transition-all duration-200 active:scale-95"
@@ -168,8 +190,8 @@ export default function ChatInput({
                     />
                 </div>
 
-                {/* Mic Button - Visible when input is empty */}
-                {!input.trim() && !isLoading && (
+                {/* Mic Button - Visible when input is empty and no image selected */}
+                {!input.trim() && !selectedImage && !isLoading && (
                     <button
                         onMouseDown={startRecording}
                         onTouchStart={startRecording}
@@ -189,7 +211,7 @@ export default function ChatInput({
                     </button>
                 )}
 
-                {input.trim() ? (
+                {input.trim() || selectedImage ? (
                     <button
                         onClick={handleSubmit}
                         className="p-3 rounded-full transition-all duration-200 transform bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-105 active:scale-95 hover:bg-blue-500"

@@ -12,7 +12,7 @@ interface UseAgentSocketReturn {
     messages: Message[];
     status: AgentStatus;
     isConnected: boolean;
-    sendMessage: (content: string) => void;
+    sendMessage: (content: string, image?: string | null) => void;
     uploadImage: (file: File) => Promise<void>;
     sendAudio: (blob: Blob, mimeType: string) => void;
     stopAgent: () => void;
@@ -82,22 +82,31 @@ export function useAgentSocket(): UseAgentSocketReturn {
         };
     }, []);
 
-    const sendMessage = useCallback((content: string) => {
-        if (!content.trim()) return;
+    const sendMessage = useCallback((content: string, image?: string | null) => {
+        if (!content.trim() && !image) return;
 
         // Add user message to local state immediately
         const userMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
-            content: content.trim(),
+            content: image ? content + (content ? '\n\n' : '') + '![IMAGE](Uploading...)' : content.trim(),
             timestamp: Date.now(),
-            // ... (rest is fine)
         };
+        // Ideally we would show the base64 preview here, but for simplicity just showing text placeholder
+        // or we could stick the base64 in the content if the Message type supports it or if it's just markdown
+
+        if (image) {
+            // For local preview, we can just append an img tag with base64? 
+            // Markdown render might support it. But let's just keep it simple.
+            userMessage.content = content + (content ? '\n\n' : '') + `![IMAGE](${image})`;
+        }
+
         setMessages((prev) => [...prev, userMessage]);
 
         // Send to server
         socketRef.current?.emit('chat:send', {
             content: content.trim(),
+            image: image // Send base64
         });
 
         // Update status locally as well
