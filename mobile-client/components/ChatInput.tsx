@@ -13,6 +13,7 @@ interface ChatInputProps {
     isLoading: boolean;
     onStop?: () => void;
     placeholder?: string;
+    isConnected?: boolean;
 }
 
 export default function ChatInput({
@@ -22,6 +23,7 @@ export default function ChatInput({
     isLoading,
     onStop,
     placeholder = 'Type a message...',
+    isConnected = true,
 }: ChatInputProps) {
     const [input, setInput] = useState('');
     const [isRecording, setIsRecording] = useState(false);

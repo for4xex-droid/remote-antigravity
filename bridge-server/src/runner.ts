@@ -31,7 +31,15 @@ if (currentDir.includes('bridge-server')) {
 }
 let pendingCommand: string | null = null;
 
-const DANGEROUS_COMMANDS = ['del', 'rm', 'rmdir', 'rd', 'format', 'shutdown', 'reboot', 'taskkill', 'mkfs'];
+const DANGEROUS_COMMANDS = [
+    'del', 'rm', 'erase', 'rimraf',         // File Deletion
+    'rmdir', 'rd',                          // Directory Deletion
+    'format', 'mkfs', 'diskpart', 'fdisk',  // Disk / System
+    'shutdown', 'reboot', 'logoff',         // System State
+    'taskkill', 'tskill',                   // Process
+    'reg', 'sc', 'net', 'netsh',            // Registry / Service / Network
+    'attrib', 'icacls', 'takeown'           // Permissions
+];
 
 if (!API_KEY) {
     console.error('❌ Error: GEMINI_API_KEY is not set.');
@@ -195,6 +203,46 @@ selectBestModel().then(() => {
     initGeminiChatSession();
 });
 
+// --- RAG Integration ---
+const RAG_SERVER_URL = "http://localhost:8001";
+
+async function searchRAG(query: string): Promise<string> {
+    try {
+        // Only search if query is long enough to be meaningful
+        if (query.length < 5) return "";
+
+        const res = await fetch(`${RAG_SERVER_URL}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query, n_results: 3 })
+        });
+
+        if (!res.ok) return "";
+
+        const data: any = await res.json();
+        const docs = data.results?.documents?.[0];
+        const metas = data.results?.metadatas?.[0];
+
+        if (!docs || docs.length === 0) return "";
+
+        let context = "【RAG KNOWLEDGE BASE RESULTS】\nThe following relevant code/docs were retrieved from your vector database to assist with the user request:\n\n";
+
+        docs.forEach((doc: string, i: number) => {
+            const meta = metas[i];
+            const source = meta?.source || "Unknown File";
+            // Limit doc length to avoid context overflow if chunk is huge
+            const preview = doc.length > 2000 ? doc.substring(0, 2000) + "\n...(truncated)" : doc;
+            context += `--- File: ${source} ---\n${preview}\n\n`;
+        });
+
+        return context;
+    } catch (e) {
+        // Silent fail (RAG server might be down, which is expected during setup)
+        // console.warn("RAG Search skipped:", e);
+        return "";
+    }
+}
+
 async function generateWithFallback(parts: any[]): Promise<string> {
     if (!chatSession) throw new Error('Chat session not initialized');
 
@@ -205,6 +253,29 @@ async function generateWithFallback(parts: any[]): Promise<string> {
     } catch (e: any) {
         console.error(`⚠️ Failed to send message: ${e.message?.split('\n')[0]}`);
         throw e;
+    }
+}
+
+// --- Helper: Load Prompts ---
+function loadPrompt(roleName: string): string {
+    try {
+        const p = path.join(process.cwd(), 'prompts', 'roles', `${roleName}.md`);
+        if (fs.existsSync(p)) return fs.readFileSync(p, 'utf-8');
+        return "";
+    } catch (e) {
+        console.warn(`Role prompt not found: ${roleName}`);
+        return "";
+    }
+}
+
+function loadGoldenRule(lang: string): string {
+    try {
+        const p = path.join(process.cwd(), 'prompts', 'golden-rules', `${lang}.md`);
+        if (fs.existsSync(p)) return fs.readFileSync(p, 'utf-8');
+        return "";
+    } catch (e) {
+        console.warn(`Golden rule not found: ${lang}`);
+        return "";
     }
 }
 
@@ -519,6 +590,64 @@ ${reviewerResult}
             return;
         }
 
+        // Feature: FAANG Auto-Dev Cycle (/dev)
+        if (messageText.startsWith('/dev ')) {
+            const userRequest = messageText.slice(5).trim();
+            console.log(`🚀 /dev Task Detected: ${userRequest}`);
+            await fileBridge.writeMessage(`🚀 **FAANG Auto-Dev Cycle Started**\nTask: ${userRequest}\n\nArchitect is analyzing requirements...`, 'agent');
+
+            try {
+                // Phase 1: Architect
+                const architectPrompt = `
+${loadPrompt('architect')}
+
+【User Request】
+${userRequest}
+`;
+                // Use askAgent but with a generic role tag
+                const designDoc = await askAgent("ARCHITECT", architectPrompt);
+                await fileBridge.writeMessage(`📄 **[Architect] Design Doc Created:**\n\n${designDoc}`, 'agent');
+
+                // Phase 2: Reviewer
+                await fileBridge.writeMessage(`🕵️ **[Reviewer] Shredding the design...**`, 'agent');
+                const reviewerPrompt = `
+${loadPrompt('reviewer')}
+
+【Review Target: Design Doc】
+${designDoc}
+`;
+                const reviewResult = await askAgent("REVIEWER", reviewerPrompt);
+                await fileBridge.writeMessage(`🔍 **[Review Result]:**\n${reviewResult}`, 'agent');
+
+                // Phase 3: Coder
+                await fileBridge.writeMessage(`👨‍💻 **[Coder] Starting TDD implementation...**`, 'agent');
+                const goldenRules = loadGoldenRule('typescript');
+                const coderPrompt = `
+${loadPrompt('coder')}
+
+【Golden Rules】
+${goldenRules}
+
+【Approved Design Doc】
+${designDoc}
+
+【Reviewer's Comments (Address these)】
+${reviewResult}
+
+Implementation Start.
+`;
+                const codeOutput = await askAgent("CODER", coderPrompt);
+                await fileBridge.writeMessage(`✅ **[Coder] Implementation Complete:**\n\n${codeOutput}`, 'agent');
+
+            } catch (err: any) {
+                console.error(`💥 Auto-Dev Error:`, err);
+                await fileBridge.writeMessage(`⚠️ Auto-Dev Crashed: ${err.message}`, 'agent');
+            }
+
+            isThinking = false;
+            return;
+        }
+
         // Feature: Command Execution (/run)
         if (messageText.startsWith('/run ') || (pendingCommand && /^(y|yes|ok|はい)$/i.test(messageText.trim()))) {
             let command = "";
@@ -676,6 +805,19 @@ ${reviewerResult}
 
         try {
             console.log('🧠 Thinking...');
+
+            // RAG Search Integration (v2.0)
+            // Skip for commands or very short messages
+            if (!messageText.startsWith('/') && messageText.length > 5) {
+                console.log('🔍 Consulting RAG Engine...');
+                const ragContext = await searchRAG(messageText);
+                if (ragContext) {
+                    console.log('📚 RAG Context Injected!');
+                    // Insert RAG context as a system-like message or implicit context part
+                    parts.push({ text: ragContext });
+                }
+            }
+
             let response = await generateWithFallback(parts);
 
             // Feature: Parse <write> tags and create files

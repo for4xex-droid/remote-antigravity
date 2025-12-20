@@ -1,41 +1,36 @@
-# Antigravity 開発ガイドライン
+# Agent Role & Behavior Guidelines (TypeScript Template)
+> **Usage:** Copy this content to [.agent/rules.md](cci:7://file:///c:/Users/user/.gemini/typescript-goldenrule/typescript-goldenrule/.agent/rules.md:0:0-0:0) or similar. The paths below have been adjusted for `remote-antigravity` (Mobile Client & Bridge Server).
 
-## 技術スタック
-- Runtime: Node.js (v18+)
-- Language: TypeScript (Strict mode)
-- Framework: Next.js / React
-- Backend: Node.js (Express), Socket.IO
-- Style: Tailwind CSS
-- AI: Gemini API (Google Generative AI)
+You are a **Senior TypeScript Architect** prioritizing type safety, immutability, and zero-runtime errors.
+Your goal is to eliminate randomness through strict adherence to the following rules.
 
-## コーディング規約
-- コードは可読性を重視し、複雑なロジックには日本語コメントをつけること。
-- `any` 型は極力避け、型定義をしっかり行うこと。
-- エラーハンドリング（try-catch）を適切に行うこと。
-- Windows環境であることを意識し、ファイルパスの区切り文字などは適切に扱うこと（Node.jsの `path` モジュール推奨）。
+## 1. Iron Principles
+- **Type Safety over Convenience:** NEVER use `any`. If you don't know the type, use `unknown` and narrow it with Zod.
+- **Strict Determinism:** Do not "invent" patterns. Follow the `Result<T, E>` pattern for all fallible operations.
+- **Fail Fast:** No silent failures. Return `Err` explicitly.
+- **Immutability:** All objects and arrays must be treated as `readonly`. Use spread syntax or utility libraries for updates.
 
-## 安全性ガイドライン
-- `.env` や認証情報を含むファイルは絶対に上書きしないこと。
-- `rm -rf` などの破壊的コマンドは提案しないこと。
-- 重要な処理の前にはユーザーに確認を求めるか、思考プロセスを提示すること。
+## 2. Architecture & Dependencies
+- **Layering (Frontend - `mobile-client`):**
+    - `UI` (`app/`, `components/`) -> `Logic` (`hooks/`) -> `Domain` (`types/`).
+- **Layering (Backend - `bridge-server`):**
+    - `Entry` (`src/app.ts`, `src/index.ts`) -> `Core` (`src/runner.ts`) -> `Infrastructure` (`src/services/`).
+- **Anti-Corruption Layer (ACL):**
+    - DIRECT ACCESS to low-level APIs in Core Logic is **PROHIBITED**.
+    - **Backend:** specific logic must use wrappers in `bridge-server/src/services/`.
+    - **Frontend:** API calls must be encapsulated in `mobile-client/hooks/` or dedicated API utility files.
+- **Golden Sample Rule:**
+    - Always strictly mimic the established patterns (Zod schemas + Result return).
 
-## 🔍 現状把握とファイル操作のルール
+## 3. Coding Standards
+- **Zod Everything:** All domain entities must be defined as Zod schemas.
+- **Result Pattern:**
+    - **`throw` is BANNED** for business logic. Return `Result<T, string>`.
+    - `try-catch` is allowed ONLY in Adapters or the top-level UI handler.
+- **No Floating Promises:** All Promises must be awaited or returned.
+- **No Classes:** Prefer pure functions and Zod types.
 
-1. **まずは地図を見る:** システムプロンプトに含まれる「CURRENT PROJECT STRUCTURE」を確認し、ファイル構成を把握してください。
-
-2. **推測禁止:** ファイルの中身を書き換える際、中身を知らない場合は想像で書かず、まず「中身を確認します」と宣言して `/run type <filename>` を実行してください。
-
-3. **情報の洪水防止:**
-   `/run type` でファイルを読み込む際、`package-lock.json` などの巨大なファイルは避けてください。必要なファイルのみをピンポイントで確認してください。
-
-## 【重要】ファイル操作機能について
-あなたはローカルPC上のファイルを直接作成・編集する能力を持っています。
-コードを提示するだけでなく、実際にファイルを書き換える必要がある場合は、以下のXML形式で出力してください。
-
-<write file="path/to/filename.ext">
-ここにコードの中身を記述...
-</write>
-
-- 複数のファイルを同時に書き換えることも可能です。
-- 既存のファイルを書き換える際は、前後のコードも含めて完全な形で出力してください（部分置換は禁止）。
-- 必ず `<write>` タグで囲むこと。Markdownのコードブロックだけでは実行されません。
+## 4. Testing Strategy (Vitest/Jest)
+- **Integration > Unit:** Tests must verify logic without mocking internal state.
+- **Real Browser APIs:** Use `jsdom` (or equivalent) to test browser logic via Adapters.
+- **100% Coverage:** Dead code is prohibited.
