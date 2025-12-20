@@ -8,14 +8,11 @@
    - Environments: .env.local, .env
 
  ✓ Starting...
- ✓ Ready in 1958ms
+ ✓ Ready in 3s
  ○ Compiling / ...
- GET / 200 in 4.5s (compile: 4.1s, render: 390ms)
- GET / 200 in 3.3s (compile: 3.0s, render: 304ms)
- GET / 200 in 74ms (compile: 9ms, render: 65ms)
- GET / 200 in 175ms (compile: 24ms, render: 151ms)
- GET / 200 in 48ms (compile: 10ms, render: 38ms)
- GET / 200 in 67ms (compile: 19ms, render: 48ms)
- ✓ Compiled in 82ms
- ✓ Compiled in 57ms
- ✓ Compiled in 42ms
+ GET / 200 in 8.5s (compile: 7.9s, render: 577ms)
+ GET / 200 in 56ms (compile: 9ms, render: 47ms)
+ GET / 200 in 69ms (compile: 9ms, render: 60ms)
+ GET / 200 in 80ms (compile: 10ms, render: 69ms)
+ GET / 200 in 56ms (compile: 8ms, render: 48ms)
+ GET / 200 in 64ms (compile: 9ms, render: 56ms)

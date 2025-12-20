@@ -16,12 +16,14 @@
   "type": "commonjs",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "chokidar": "^5.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "multer": "^2.0.2",
     "screenshot-desktop": "^1.15.3",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "systeminformation": "^5.27.14"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

@@ -1,0 +1,14 @@
+
+<--- Last few GCs --->
+
+[8324:0000028EFB95E000]   318496 ms: Mark-Compact (reduce) 4349.1 (4353.6) -> 4349.0 (4352.1) MB, pooled: 0 MB, 60.67 / 0.00 ms  (+ 0.3 ms in 2 steps since start of marking, biggest step 0.2 ms, walltime since start of marking 1127 ms) (average mu = 0.983
+FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 00007FF79232AD5F node::OnFatalError+1343
+ 2: 00007FF792F732D7 v8::Function::NewInstance+423
+ 3: 00007FF792D73997 v8::base::AddressSpaceReservation::AddressSpaceReservation+322071
+ 4: 00007FF792D71636 v8::base::AddressSpaceReservation::AddressSpaceReservation+313014
+ 5: 00007FF792DF5139 v8::Unlocker::~Unlocker+9273
+ 6: 00007FF79296AEB8 v8::String::Utf8Value::~Utf8Value+142680
+ 7: 0000028EB7E7733A 

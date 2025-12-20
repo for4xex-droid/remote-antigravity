@@ -4,7 +4,7 @@ import ChatInput from '../components/ChatInput';
 import MessageList from '../components/MessageList';
 import AgentStatus from '../components/AgentStatus';
 import { useAgentSocket } from '../hooks/useAgentSocket';
-
+import SystemDashboard from '../components/SystemDashboard';
 
 export default function Home() {
     const { messages, status, isConnected, sendMessage, sendAudio } = useAgentSocket();
@@ -24,9 +24,9 @@ export default function Home() {
                 <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth">
 
                     {/* Widget Area */}
-
-
-                    {/* Chat Messages */}
+                    <div className="w-full">
+                        <SystemDashboard />
+                    </div>                    {/* Chat Messages */}
                     <MessageList messages={messages} />
                 </div>
             </main>

@@ -16,41 +16,44 @@ interface UseAgentSocketReturn {
     uploadImage: (file: File) => Promise<void>;
     sendAudio: (blob: Blob, mimeType: string) => void;
     stopAgent: () => void;
+    socket: Socket | null;
 }
 
 export function useAgentSocket(): UseAgentSocketReturn {
     const [messages, setMessages] = useState<Message[]>([]);
     const [status, setStatus] = useState<AgentStatus>('idle');
     const [isConnected, setIsConnected] = useState(false);
+    const [socket, setSocket] = useState<Socket | null>(null);
     const socketRef = useRef<Socket | null>(null);
 
     useEffect(() => {
         // Create socket connection
-        const socket = io(BRIDGE_URL, {
+        const newSocket = io(BRIDGE_URL, {
             transports: ['websocket', 'polling'],
             autoConnect: true,
         });
 
-        socketRef.current = socket;
+        socketRef.current = newSocket;
+        setSocket(newSocket);
 
         // Connection events
-        socket.on('connect', () => {
+        newSocket.on('connect', () => {
             setIsConnected(true);
             console.log('Connected to Bridge Server');
         });
 
-        socket.on('disconnect', () => {
+        newSocket.on('disconnect', () => {
             setIsConnected(false);
             console.log('Disconnected from Bridge Server');
         });
 
-        socket.on('connect_error', (error) => {
+        newSocket.on('connect_error', (error) => {
             console.error('Connection error:', error);
             setStatus('error');
         });
 
         // Chat events
-        socket.on('chat:receive', (message: Message) => {
+        newSocket.on('chat:receive', (message: Message) => {
             console.log('📩 chat:receive event:', {
                 id: message.id,
                 role: message.role,
@@ -63,18 +66,18 @@ export function useAgentSocket(): UseAgentSocketReturn {
         });
 
         // Status events
-        socket.on('agent:status', (data: { status: AgentStatus }) => {
+        newSocket.on('agent:status', (data: { status: AgentStatus }) => {
             setStatus(data.status);
         });
 
         // Welcome message
-        socket.on('welcome', (data: { message: string }) => {
+        newSocket.on('welcome', (data: { message: string }) => {
             console.log('Server:', data.message);
         });
 
         // Cleanup on unmount (important for React Strict Mode)
         return () => {
-            socket.disconnect();
+            newSocket.disconnect();
             socketRef.current = null;
         };
     }, []);
@@ -88,6 +91,7 @@ export function useAgentSocket(): UseAgentSocketReturn {
             role: 'user',
             content: content.trim(),
             timestamp: Date.now(),
+            // ... (rest is fine)
         };
         setMessages((prev) => [...prev, userMessage]);
 
@@ -100,19 +104,21 @@ export function useAgentSocket(): UseAgentSocketReturn {
         setStatus('thinking');
     }, []);
 
+    // ... (rest of functions)
+
     const stopAgent = useCallback(() => {
         socketRef.current?.emit('agent:stop');
         setStatus('idle');
     }, []);
 
     const uploadImage = useCallback(async (file: File) => {
+        // ... (existing implementation)
         if (!BRIDGE_URL) return;
 
         const formData = new FormData();
         formData.append('image', file);
 
         try {
-            // Optimistically add a pending message? No, wait for server
             const response = await fetch(`${BRIDGE_URL}/upload`, {
                 method: 'POST',
                 body: formData,
@@ -122,7 +128,6 @@ export function useAgentSocket(): UseAgentSocketReturn {
                 throw new Error('Upload failed');
             }
 
-            // UI Feedback: Add message to local state
             const newMessage: Message = {
                 id: Date.now().toString(),
                 role: 'user',
@@ -134,7 +139,6 @@ export function useAgentSocket(): UseAgentSocketReturn {
             setStatus('idle');
         } catch (error) {
             console.error('Upload error:', error);
-            // Could add error state here
         }
     }, []);
 
@@ -145,7 +149,6 @@ export function useAgentSocket(): UseAgentSocketReturn {
             timestamp: Date.now()
         });
 
-        // Optimistic UI update
         const newMessage: Message = {
             id: Date.now().toString(),
             role: 'user',
@@ -160,6 +163,7 @@ export function useAgentSocket(): UseAgentSocketReturn {
         messages,
         status,
         isConnected,
+        socket, // Export socket
         sendMessage,
         uploadImage,
         sendAudio,

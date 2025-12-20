@@ -205,6 +205,73 @@ selectBestModel().then(() => {
 
 // --- RAG Integration ---
 const RAG_SERVER_URL = "http://localhost:8001";
+import chokidar from 'chokidar';
+
+// --- Live Synapse (Real-time Learning) ---
+let ingestQueue: Set<string> = new Set();
+let debounceTimer: NodeJS.Timeout | null = null;
+
+async function ingestFile(filePath: string) {
+    try {
+        const relativePath = path.relative(projectRoot, filePath);
+        // Skip ignored files/dirs
+        if (relativePath.match(/(node_modules|\.git|\.next|dist|coverage|build|\.vscode|uploads|logs|venv)/)) return;
+
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const ext = path.extname(filePath);
+
+        if (!['.ts', '.tsx', '.js', '.md', '.py', '.json'].includes(ext)) return;
+
+        console.log(`🧠 Learning new knowledge: ${relativePath}`);
+
+        await fetch(`${RAG_SERVER_URL}/ingest`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: relativePath,
+                text: content,
+                metadata: { source: relativePath, type: ext }
+            })
+        });
+    } catch (e) {
+        console.error(`⚠️ Failed to ingest ${filePath}:`, e);
+    }
+}
+
+function processIngestQueue() {
+    if (ingestQueue.size === 0) return;
+
+    console.log(`🔄 Processing Live Synapse Queue (${ingestQueue.size} files)...`);
+    const files = Array.from(ingestQueue);
+    ingestQueue.clear();
+
+    files.forEach(file => ingestFile(file));
+}
+
+function startLiveSynapse() {
+    console.log('⚡ Starting Live Synapse (Real-time RAG Learning)...');
+
+    // Watch the entire project root (relies on 'ignored' to filter noise)
+    const watcher = chokidar.watch(projectRoot, {
+        ignored: /(node_modules|\.next|dist|\.git|uploads|logs|venv|chroma_db|\.vscode|coverage)/,
+        persistent: true,
+        ignoreInitial: true // Don't re-ingest everything on start
+    });
+
+    watcher.on('all', (event, path) => {
+        if (event === 'change' || event === 'add') {
+            ingestQueue.add(path);
+
+            // Debounce: Wait 3 seconds after last change before processing
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(processIngestQueue, 3000);
+        }
+    });
+}
+
+// Ensure Live Synapse starts
+startLiveSynapse();
+
 
 async function searchRAG(query: string): Promise<string> {
     try {

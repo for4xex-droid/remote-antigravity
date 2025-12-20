@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { FileBridge } from './services/FileBridge';
 import path from 'path';
 import fs from 'fs';
+import si from 'systeminformation';
 
 // Default chat file path (can be overridden via environment variable)
 const CHAT_FILE_PATH = process.env.CHAT_FILE_PATH ||
@@ -181,6 +182,43 @@ export function setupSocket(io: Server): void {
     });
 
     console.log(`📁 FileBridge initialized: ${CHAT_FILE_PATH}`);
+
+    // --- System Monitoring (HUD) ---
+    startSystemMonitoring(io);
+}
+
+let statsInterval: NodeJS.Timeout | null = null;
+
+function startSystemMonitoring(io: Server) {
+    if (statsInterval) clearInterval(statsInterval);
+
+    console.log('⚡ Starting System HUD Monitoring...');
+
+    statsInterval = setInterval(async () => {
+        try {
+            const [cpu, mem] = await Promise.all([
+                si.currentLoad(),
+                si.mem()
+            ]);
+
+            const stats = {
+                cpu: {
+                    load: Math.round(cpu.currentLoad),
+                    cores: cpu.cpus.map(c => Math.round(c.load))
+                },
+                memory: {
+                    total: mem.total,
+                    used: mem.used,
+                    percent: Math.round((mem.used / mem.total) * 100)
+                },
+                timestamp: Date.now()
+            };
+
+            io.emit('system_stats', stats);
+        } catch (e) {
+            console.error('Failed to fetch system stats:', e);
+        }
+    }, 2000);
 }
 
 // Cleanup function
@@ -188,5 +226,9 @@ export function cleanupSocket(): void {
     if (fileBridge) {
         fileBridge.stopWatching();
         fileBridge = null;
+    }
+    if (statsInterval) {
+        clearInterval(statsInterval);
+        statsInterval = null;
     }
 }

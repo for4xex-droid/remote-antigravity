@@ -4,209 +4,32 @@
 
 📁 FileBridge: Watching C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
 📁 FileBridge initialized: C:\Users\user\.gemini\remote-antigravity\mobile-chat.md
+⚡ Starting System HUD Monitoring...
 🚀 Bridge Server running on http://localhost:3001
 📡 Socket.io ready for connections
-Client connected: BGzZ386bTsfzk7F7AAAB
-Client disconnected: BGzZ386bTsfzk7F7AAAB
-Client connected: BwQGH4LIi2HCQ9SnAAAD
-Client disconnected: BwQGH4LIi2HCQ9SnAAAD
-Client connected: v0bLM3XuulRAFUl4AAAF
-Client disconnected: v0bLM3XuulRAFUl4AAAF
-Client connected: aSS6EOaPbsqI2-mCAAAH
-🎤 Received voice audio: audio/webm; codecs=opus, 189226 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766234269718.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10043561
-DEBUG: Last Agent timestamp: 21:37:53
-DEBUG: Matched content length: 47
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "ラグ サーバー の コード は どこ に ある ? どんな 仕組み ?"
-DEBUG: Last 100 chars: 👂 Hears: "ラグ サーバー の コード は どこ に ある ? どんな 仕組み ?"
-✅ Message emitted to clients (timestamp: 21:37:53)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10044340
-DEBUG: Last Agent timestamp: 21:37:57
-DEBUG: Matched content length: 757
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 「ラグ サーバー」という表現は明確なファイル名としては存在しませんが、システム全体の後端（バックエンド）として機能し、フロントエンドとの通信を担っているのが `bridge-server` ディレクト
-DEBUG: Last 100 chars: ーバーで、Socket.IOを通じてリアルタイムなメッセージングを提供しています。処理の遅延は、主にこのサーバーの処理能力、ネットワークの状態、またはAgent側の応答速度に依存する可能性があります。
-✅ Message emitted to clients (timestamp: 21:37:57)
-🎤 Received voice audio: audio/webm; codecs=opus, 100262 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766234312658.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10044466
-DEBUG: Last Agent timestamp: 21:38:35
-DEBUG: Matched content length: 38
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "RAGサーバーのコードどこにある？どんなスクリプト？"
-DEBUG: Last 100 chars: 👂 Hears: "RAGサーバーのコードどこにある？どんなスクリプト？"
-✅ Message emitted to clients (timestamp: 21:38:35)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10045458
-DEBUG: Last Agent timestamp: 21:38:43
-DEBUG: Matched content length: 970
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: ご質問ありがとうございます。「RAGサーバー」という名前の独立したサーバーは、現在のプロジェクト構造には見当たりません。
-
-しかし、RAG (Retrieval-Augmented Generatio
-DEBUG: Last 100 chars: 応答を受け取ります。
-
-まとめると、RAGの「機能」は、主に**`bridge-server/src/socket.ts`**と、関連情報を検索・統合するロジックの中に組み込まれていると考えられます。
-✅ Message emitted to clients (timestamp: 21:38:43)
-Client disconnected: aSS6EOaPbsqI2-mCAAAH
-Client connected: eR9iYgmwnOVyocheAAAJ
-🎤 Received voice audio: audio/webm; codecs=opus, 193838 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766234995471.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10045584
-DEBUG: Last Agent timestamp: 21:49:58
-DEBUG: Matched content length: 38
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "ラグサーバーはどこのポートで動いてる？コードはどこ？"
-DEBUG: Last 100 chars: 👂 Hears: "ラグサーバーはどこのポートで動いてる？コードはどこ？"
-✅ Message emitted to clients (timestamp: 21:49:58)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10046084
-DEBUG: Last Agent timestamp: 21:50:01
-DEBUG: Matched content length: 204
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: [Agent System]: Executed 'type bridge-server/src/index.ts'
-💀 Error:
-Command failed: chcp 65001 > nu
-DEBUG: Last 100 chars:  type bridge-server/src/index.ts
-�R�}���h�̍\��������Ă��܂��B
-
-
-⚠️ Stderr:
-�R�}���h�̍\��������Ă��܂��B
-✅ Message emitted to clients (timestamp: 21:50:01)
-🎤 Received voice audio: audio/webm; codecs=opus, 114964 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766235013012.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10046211
-DEBUG: Last Agent timestamp: 21:50:15
-DEBUG: Matched content length: 39
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "RAGサーバーはどこのポートで動いてる？コードはどこ？"
-DEBUG: Last 100 chars: 👂 Hears: "RAGサーバーはどこのポートで動いてる？コードはどこ？"
-✅ Message emitted to clients (timestamp: 21:50:15)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10046679
-DEBUG: Last Agent timestamp: 21:50:20
-DEBUG: Matched content length: 446
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 再度のご質問ありがとうございます。
-
-「RAGサーバー」という名称の独立したサーバーは、プロジェクトのファイル構造上には存在しません。RAG（Retrieval-Augmented Generatio
-DEBUG: Last 100 chars: ` を指示しましたが、その結果はまだ表示されていません。
-
-もしまだでしたら、上記のコマンドを実行した結果をお待ちしております。そのファイルの内容を確認すれば、どのポートを使用しているか特定できます。
-✅ Message emitted to clients (timestamp: 21:50:20)
-Client disconnected: eR9iYgmwnOVyocheAAAJ
-Client connected: 8E6K17UEKaJXcGbDAAAL
-Client disconnected: 8E6K17UEKaJXcGbDAAAL
-Client connected: k0Go03DTwpXZlogBAAAN
-🎤 Received voice audio: audio/webm; codecs=opus, 129281 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766235467029.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10046847
-DEBUG: Last Agent timestamp: 21:57:50
-DEBUG: Matched content length: 29
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "ラグのコードはどこ？ボード番号は？"
-DEBUG: Last 100 chars: 👂 Hears: "ラグのコードはどこ？ボード番号は？"
-✅ Message emitted to clients (timestamp: 21:57:50)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10047458
-DEBUG: Last Agent timestamp: 21:57:53
-DEBUG: Matched content length: 230
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: [Agent System]: Executed 'type bridge-server/src/index.ts'
-💀 Error:
-Command failed: chcp 65001 > nu
-DEBUG: Last 100 chars: dex.ts
-The syntax of the command is incorrect.
-
-
-⚠️ Stderr:
-The syntax of the command is incorrect.
-✅ Message emitted to clients (timestamp: 21:57:53)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10048029
-DEBUG: Last Agent timestamp: 21:57:54
-DEBUG: Matched content length: 300
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: [Agent System]: Executed 'cat .env'
-💀 Error:
-Command failed: chcp 65001 > nul && cat .env
-'cat' �́A
-DEBUG: Last 100 chars: r:
-'cat' �́A�����R�}���h�܂��͊O���R�}���h�A
-����\�ȃv���O�����܂��̓o�b�` �t�@�C���Ƃ��ĔF������Ă��܂���B
-✅ Message emitted to clients (timestamp: 21:57:54)
-🎤 Received voice audio: audio/webm; codecs=opus, 101248 bytes
-💾 Saved voice file to: C:\Users\user\.gemini\remote-antigravity\bridge-server\uploads\voice_1766235495552.webm
-📝 Written voice tag to file
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10048197
-DEBUG: Last Agent timestamp: 21:58:18
-DEBUG: Matched content length: 29
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "ラグのコードはどこ？ポート番号は？"
-DEBUG: Last 100 chars: 👂 Hears: "ラグのコードはどこ？ポート番号は？"
-✅ Message emitted to clients (timestamp: 21:58:18)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10048197
-DEBUG: Last Agent timestamp: 21:58:18
-DEBUG: Matched content length: 29
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: 👂 Hears: "ラグのコードはどこ？ポート番号は？"
-DEBUG: Last 100 chars: 👂 Hears: "ラグのコードはどこ？ポート番号は？"
-⏭️ Skipping duplicate message (same timestamp: 21:58:18)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10048400
-DEBUG: Last Agent timestamp: 21:58:21
-DEBUG: Matched content length: 181
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: おっと、申し訳ありません。前回のコマンドの出力がまだ届いていませんでした。
-
-「ラグのコード」とは、RAGエンジン（Retrieval-Augmented Generation engine）のコード
-DEBUG: Last 100 chars: eration engine）のコードのことでしょうか？もしそうでしたら、それは`rag-engine/`ディレクトリにあります。
-
-ポート番号については、以前に実行したコマンドの出力結果を待ちます。
-✅ Message emitted to clients (timestamp: 21:58:21)
-📄 File changed, reading full content...
-DEBUG: fullContent length: 10049078
-DEBUG: Last Agent timestamp: 21:58:22
-DEBUG: Matched content length: 230
-DEBUG: Content contains IMAGE: false
-DEBUG: Content contains data: false
-DEBUG: First 100 chars: [Agent System]: Executed 'type bridge-server/src/index.ts'
-💀 Error:
-Command failed: chcp 65001 > nu
-DEBUG: Last 100 chars: dex.ts
-The syntax of the command is incorrect.
-
-
-⚠️ Stderr:
-The syntax of the command is incorrect.
-✅ Message emitted to clients (timestamp: 21:58:22)
+Client connected: 89gmjVs6XFIABs8XAAAC
+Client connected: yFpIKjEtNWHiFYPtAAAD
+Client disconnected: yFpIKjEtNWHiFYPtAAAD
+Client disconnected: 89gmjVs6XFIABs8XAAAC
+Client connected: -r16e9r8yO-y6E-hAAAG
+Client connected: BxIDQtgLEveR30AAAAAH
+Client disconnected: -r16e9r8yO-y6E-hAAAG
+Client disconnected: BxIDQtgLEveR30AAAAAH
+Client connected: LU5HaD7yw0K58rcNAAAJ
+Client connected: ncOZ5f9zhuDxCcCkAAAL
+Client disconnected: ncOZ5f9zhuDxCcCkAAAL
+Client connected: 17TTtjGHYYQ68Ry7AAAO
+Client connected: hMmOCAIvdQRaFlRXAAAP
+Client disconnected: LU5HaD7yw0K58rcNAAAJ
+Client disconnected: 17TTtjGHYYQ68Ry7AAAO
+Client disconnected: hMmOCAIvdQRaFlRXAAAP
+Client connected: 8GluQvzvrzBAfXVnAAAS
+Client connected: QzyHcEVkCZBQpSm5AAAT
+Client disconnected: 8GluQvzvrzBAfXVnAAAS
+Client disconnected: QzyHcEVkCZBQpSm5AAAT
+Client connected: dJcidP1HJRFheRp-AAAV
+Client connected: d44SOJnr13-F2H-CAAAX
+Client disconnected: dJcidP1HJRFheRp-AAAV
+Client disconnected: d44SOJnr13-F2H-CAAAX
+Client connected: joEOgQKdyNPNTHunAAAa
+Client connected: wG75hH2PF2_I6vCVAAAb
